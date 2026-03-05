@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>FIREtrack — Financial Independence Calculator</title>
+<meta name="description" content="Free FIRE calculator to track your path to Financial Independence. See your FIRE number, projected retirement age, net worth trajectory, and tax breakdown — all in today's dollars.">
+<meta name="keywords" content="FIRE calculator, financial independence, retire early, FIRE number, coast FIRE, safe withdrawal rate, net worth tracker">
+<meta name="author" content="FIREtrack">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph / Social Sharing -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="FIREtrack — Free Financial Independence Calculator">
+<meta property="og:description" content="Calculate your FIRE number, project your retirement age, and track your journey to financial independence. Free, private — all calculations run in your browser. No data ever leaves your device.">
+<meta property="og:image" content="/og-image.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FIREtrack — Free Financial Independence Calculator">
+<meta name="twitter:description" content="Calculate your FIRE number, project your retirement age, and track your journey to financial independence. Free, private — all calculations run in your browser.">
+<meta name="twitter:image" content="/og-image.png">
+
+<!-- Favicon (SVG emoji) -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+<style>
+:root {
+  --fire-orange: #FF6B2B;
+  --fire-amber: #FFB347;
+  --ember: #FF4500;
+  --bg: #0D0D0D;
+  --surface: #161616;
+  --surface2: #1E1E1E;
+  --surface3: #282828;
+  --text: #F5F0E8;
+  --text-muted: #8A8580;
+  --text-dim: #5A5550;
+  --border: #2A2A2A;
+  --green: #4ADE80;
+  --teal: #2DD4BF;
+  --partner: #A78BFA;
+}
+.light-mode {
+  --bg: #FAF8F4;
+  --surface: #FFFFFF;
+  --surface2: #F5F0E8;
+  --surface3: #EDE8DC;
+  --text: #1A1714;
+  --text-muted: #6B6560;
+  --text-dim: #9A9590;
+  --border: #E0D8CC;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh;
+  transition:background 0.3s,color 0.3s;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.app-shell { max-width:1200px; margin:0 auto; padding:0 16px 100px; }
+
+/* HEADER */
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 0 14px; border-bottom:1px solid var(--border); margin-bottom:22px;
+  gap:10px; flex-wrap:wrap;
+}
+.logo { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.flame-icon {
+  width:36px; height:36px;
+  background:linear-gradient(160deg,var(--fire-amber),var(--ember));
+  border-radius:9px; display:flex; align-items:center; justify-content:center;
+  font-size:19px; box-shadow:0 0 16px rgba(255,107,43,0.45); flex-shrink:0;
+}
+.logo-text { font-family:'DM Sans',sans-serif; font-weight:700; font-size:1.25rem; letter-spacing:-0.03em; line-height:1; }
+.logo-text span { color:var(--fire-orange); }
+.logo-sub { font-size:0.62rem; color:var(--text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:3px; }
+.header-actions { display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
+.btn {
+  padding:8px 14px; border-radius:8px;
+  font-family:'DM Sans',sans-serif; font-size:0.81rem; font-weight:500;
+  cursor:pointer; border:none; transition:all 0.2s;
+  white-space:nowrap; display:inline-flex; align-items:center; gap:4px;
+}
+.btn-ghost { background:transparent; border:1px solid var(--border); color:var(--text-muted); }
+.btn-ghost:hover { border-color:var(--fire-orange); color:var(--fire-orange); }
+.btn-fire {
+  background:linear-gradient(135deg,var(--fire-orange),var(--ember));
+  color:white; font-weight:600; box-shadow:0 4px 12px rgba(255,107,43,0.3);
+}
+.btn-fire:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(255,107,43,0.4); }
+
+/* TABS */
+.tabs-wrap { overflow-x:auto; margin-bottom:24px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.tabs-wrap::-webkit-scrollbar { display:none; }
+.tabs {
+  display:flex; gap:3px; background:var(--surface); padding:4px;
+  border-radius:12px; border:1px solid var(--border); width:max-content; min-width:100%;
+}
+.tab {
+  padding:8px 13px; border-radius:9px; font-size:0.81rem; font-weight:500;
+  cursor:pointer; color:var(--text-muted); transition:all 0.2s;
+  border:none; background:none; font-family:'DM Sans',sans-serif;
+  white-space:nowrap; flex:1; text-align:center;
+}
+.tab.active { background:var(--fire-orange); color:white; font-weight:600; }
+
+/* GRIDS */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+@media(max-width:680px){.grid-2{grid-template-columns:1fr;} .grid-3{grid-template-columns:1fr 1fr;}}
+@media(max-width:400px){.grid-3{grid-template-columns:1fr;}}
+
+/* CARD */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:18px; transition:border-color 0.2s;
+}
+.card-title {
+  font-family:'DM Sans',sans-serif; font-size:0.7rem; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted);
+  margin-bottom:13px; display:flex; align-items:center; gap:7px;
+}
+.card-title .dot { width:6px; height:6px; border-radius:50%; background:var(--fire-orange); flex-shrink:0; }
+.partner-dot { background:var(--partner) !important; }
+
+/* FORM */
+.section-label {
+  font-family:'DM Sans',sans-serif; font-size:0.66rem; font-weight:700;
+  letter-spacing:0.12em; text-transform:uppercase; color:var(--fire-orange);
+  margin-bottom:11px; margin-top:2px;
+}
+.section-label.p { color:var(--partner); }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+@media(max-width:480px){.two-col{grid-template-columns:1fr;}}
+.form-group { display:flex; flex-direction:column; gap:5px; }
+.label-row { display:flex; align-items:center; gap:5px; }
+label { font-size:0.77rem; color:var(--text-muted); font-weight:500; line-height:1.2; }
+
+/* INFO BUTTON */
+.ib {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:15px; height:15px; border-radius:50%;
+  background:var(--surface3); border:1px solid var(--border);
+  color:var(--text-muted); font-size:0.58rem; font-weight:700;
+  cursor:pointer; flex-shrink:0; line-height:1;
+  transition:all 0.15s; font-family:'DM Sans',sans-serif;
+  position:relative; top:1px;
+}
+.ib:hover,.ib:focus { background:var(--fire-orange); color:white; border-color:var(--fire-orange); outline:none; }
+
+/* TOOLTIP OVERLAY */
+.tt-overlay {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:16px;
+}
+.tt-overlay.open { display:flex; }
+.tt-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:22px; max-width:400px; width:100%;
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+  animation:ttIn 0.18s ease;
+}
+@keyframes ttIn { from{opacity:0;transform:scale(0.93) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.tt-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.tt-title { font-family:'DM Sans',sans-serif; font-weight:700; font-size:0.95rem; color:var(--fire-orange); line-height:1.3; }
+.tt-close {
+  background:var(--surface3); border:none; color:var(--text-muted);
+  width:26px; height:26px; border-radius:7px; cursor:pointer; font-size:0.9rem;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s;
+}
+.tt-close:hover { background:var(--border); color:var(--text); }
+.tt-body { font-size:0.85rem; color:var(--text-muted); line-height:1.6; }
+.tt-body strong { color:var(--text); }
+.tt-tag {
+  display:inline-block; margin-top:11px; padding:3px 9px;
+  background:rgba(255,107,43,0.12); color:var(--fire-orange);
+  border-radius:20px; font-size:0.7rem; font-weight:600;
+}
+
+/* FIRE TYPE SELECTOR */
+.fire-types { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-bottom:4px; }
+@media(max-width:560px){.fire-types{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:340px){.fire-types{grid-template-columns:repeat(2,1fr);}}
+.ft-btn {
+  padding:10px 5px 8px; border:1px solid var(--border); border-radius:10px;
+  text-align:center; cursor:pointer; transition:all 0.2s;
+  background:var(--surface2); position:relative;
+}
+.ft-btn:hover { border-color:var(--fire-orange); }
+.ft-btn.active { border-color:var(--fire-orange); background:rgba(255,107,43,0.1); }
+.ft-icon { font-size:1.25rem; margin-bottom:3px; }
+.ft-name { font-size:0.67rem; font-weight:700; color:var(--text); }
+.ft-range { font-size:0.6rem; color:var(--text-muted); margin-top:2px; }
+.ft-ib {
+  position:absolute; top:4px; right:4px;
+  width:13px; height:13px; border-radius:50%;
+  background:var(--surface3); border:1px solid var(--border);
+  color:var(--text-dim); font-size:0.52rem; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.15s; font-family:'DM Sans',sans-serif;
+}
+.ft-ib:hover { background:var(--fire-orange); color:white; border-color:var(--fire-orange); }
+
+/* INPUTS */
+.input-wrap { position:relative; }
+.input-prefix {
+  position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  color:var(--text-muted); font-size:0.86rem; pointer-events:none;
+}
+input,select {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:9px; padding:10px 10px; color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:0.88rem;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  outline:none; -webkit-appearance:none; appearance:none; min-height:42px;
+}
+.has-prefix input { padding-left:22px; }
+.input-wrap.has-suffix { position:relative; }
+.input-wrap.has-suffix input { padding-right:30px; }
+.input-suffix { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:0.82rem; color:var(--text-muted); pointer-events:none; }
+input:focus,select:focus { border-color:var(--fire-orange); box-shadow:0 0 0 3px rgba(255,107,43,0.12); }
+select {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%238A8580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center; padding-right:28px;
+}
+select option { background:var(--surface2); }
+
+/* SLIDER */
+.slider-group { display:flex; flex-direction:column; gap:8px; }
+.slider-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.slider-val { font-family:'DM Sans',sans-serif; font-weight:700; color:var(--fire-orange); font-size:0.92rem; white-space:nowrap; }
+input[type=range] { padding:0; height:6px; background:var(--surface3); border:none; border-radius:3px; cursor:pointer; min-height:6px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--fire-orange); box-shadow:0 0 8px rgba(255,107,43,0.5); cursor:pointer; }
+input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%; border:none; background:var(--fire-orange); cursor:pointer; }
+
+/* DIVIDER */
+.divider { height:1px; background:var(--border); margin:16px 0; }
+
+/* TOGGLE */
+.toggle-wrap { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+.toggle { width:38px; height:21px; background:var(--surface3); border-radius:11px; position:relative; transition:background 0.2s; border:1px solid var(--border); flex-shrink:0; }
+.toggle.on { background:var(--fire-orange); }
+.toggle::after { content:''; position:absolute; width:15px; height:15px; background:white; border-radius:50%; top:2px; left:2px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
+.toggle.on::after { transform:translateX(17px); }
+.toggle-label { font-size:0.8rem; color:var(--text-muted); }
+
+/* PARTNER TOGGLE BANNER */
+.partner-banner {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 16px;
+  background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(167,139,250,0.03));
+  border:1px solid rgba(167,139,250,0.22); border-radius:12px;
+  cursor:pointer; transition:all 0.2s; gap:10px;
+}
+.partner-banner:hover { border-color:var(--partner); }
+.partner-banner-info .title { font-weight:600; font-size:0.87rem; color:var(--text); display:flex; align-items:center; gap:7px; }
+.partner-banner-info .sub { font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+.partner-toggle.on { background:var(--partner); }
+.partner-card { border:1px solid rgba(167,139,250,0.28); background:linear-gradient(135deg,rgba(167,139,250,0.04),transparent); }
+.partner-section { display:none; margin-top:12px; }
+.partner-section.open { display:block; }
+
+/* SECTION HEADING */
+.section-heading { font-family:'DM Serif Display',serif; font-size:1.4rem; margin-bottom:4px; line-height:1.3; }
+.section-sub { font-size:0.84rem; color:var(--text-muted); margin-bottom:18px; line-height:1.5; }
+
+/* VIEWS */
+.view { display:none; }
+.view.active { display:block; }
+
+/* HERO */
+.hero {
+  background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
+  border:1px solid var(--border); border-radius:18px; padding:22px;
+  position:relative; overflow:hidden; margin-bottom:16px;
+}
+.hero::before {
+  content:''; position:absolute; top:-50px; right:-50px;
+  width:200px; height:200px;
+  background:radial-gradient(circle,rgba(255,107,43,0.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-label { font-family:'DM Sans',sans-serif; font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; }
+.hero-amount { font-family:'DM Serif Display',serif; font-size:clamp(1.9rem,5.5vw,2.9rem); color:var(--text); line-height:1; margin-bottom:5px; }
+.hero-amount .currency { color:var(--fire-orange); }
+.hero-sub { font-size:0.8rem; color:var(--text-muted); line-height:1.4; }
+.hero-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px; padding-top:16px; border-top:1px solid var(--border); }
+@media(max-width:460px){.hero-grid{grid-template-columns:1fr 1fr;}}
+.h-stat-label { font-size:0.7rem; color:var(--text-muted); margin-bottom:3px; }
+.h-stat-val { font-family:'DM Sans',sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:-0.01em; }
+.h-stat-val.o { color:var(--fire-orange); }
+.h-stat-val.g { color:var(--green); }
+.h-stat-val.t { color:var(--teal); }
+
+/* GAUGE */
+.gauge-wrap { position:relative; width:170px; height:95px; margin:0 auto 6px; flex-shrink:0; }
+.gauge-wrap canvas { position:absolute; top:0; left:0; }
+.gauge-center { position:absolute; bottom:0; left:50%; transform:translateX(-50%); text-align:center; }
+.gauge-pct { font-family:'DM Serif Display',serif; font-size:1.9rem; color:var(--text); line-height:1; }
+.gauge-label { font-size:0.68rem; color:var(--text-muted); }
+
+/* BADGES */
+.milestones { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.badge { padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; display:flex; align-items:center; gap:3px; white-space:nowrap; }
+.badge.earned { background:rgba(74,222,128,0.12); color:var(--green); border:1px solid rgba(74,222,128,0.28); }
+.badge.locked { background:var(--surface2); color:var(--text-dim); border:1px solid var(--border); opacity:0.55; }
+
+/* STAT ROW */
+.stat-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); gap:8px; }
+.stat-row:last-child { border-bottom:none; }
+.stat-row-label { font-size:0.82rem; color:var(--text-muted); line-height:1.3; }
+.stat-row-val { font-weight:600; font-size:0.87rem; text-align:right; }
+
+/* CHART */
+.chart-wrap { position:relative; height:220px; }
+
+/* NW BARS */
+.nw-bar { margin-top:5px; }
+.nw-bar-label { display:flex; justify-content:space-between; font-size:0.74rem; color:var(--text-muted); margin-bottom:4px; gap:6px; }
+.nw-bar-track { height:7px; background:var(--surface3); border-radius:4px; overflow:hidden; margin-bottom:5px; }
+.nw-bar-fill { height:100%; border-radius:4px; transition:width 0.7s ease; }
+
+/* SAVINGS METER */
+.srm-track { height:24px; background:var(--surface3); border-radius:5px; overflow:hidden; }
+.srm-fill {
+  height:100%; border-radius:5px; display:flex; align-items:center;
+  justify-content:flex-end; padding-right:9px; font-size:0.76rem; font-weight:700;
+  color:white; transition:width 0.8s ease; min-width:30px;
+  background:linear-gradient(90deg,var(--fire-amber),var(--fire-orange),var(--ember));
+}
+.srm-zones { display:flex; justify-content:space-between; margin-top:4px; font-size:0.64rem; color:var(--text-dim); }
+
+/* COAST HIGHLIGHT */
+.coast-hi {
+  background:linear-gradient(135deg,rgba(45,212,191,0.1),rgba(45,212,191,0.03));
+  border:1px solid rgba(45,212,191,0.22); border-radius:10px; padding:13px 16px; margin-top:12px;
+}
+.coast-label { font-size:0.7rem; color:var(--teal); font-weight:600; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:3px; }
+.coast-val { font-family:'DM Sans',sans-serif; font-size:1.45rem; font-weight:700; letter-spacing:-0.02em; color:var(--teal); }
+
+/* WHAT-IF */
+.wi-card { background:linear-gradient(135deg,rgba(255,107,43,0.07),rgba(255,179,71,0.03)); border:1px solid rgba(255,107,43,0.16); border-radius:14px; padding:18px; margin-bottom:14px; }
+.wi-result { display:flex; align-items:center; gap:12px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,107,43,0.16); flex-wrap:wrap; }
+.wi-arrow { font-size:1.35rem; color:var(--fire-orange); }
+.wi-change { font-family:'DM Sans',sans-serif; font-size:1.4rem; font-weight:700; letter-spacing:-0.01em; }
+
+/* TIPS */
+.tip-card { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--fire-orange); border-radius:0 12px 12px 0; padding:13px 16px; margin-bottom:9px; }
+.tip-author { font-size:0.68rem; color:var(--fire-orange); font-weight:600; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:3px; }
+.tip-text { font-size:0.84rem; color:var(--text); line-height:1.55; }
+.tip-tag { display:inline-block; margin-top:7px; padding:2px 8px; background:var(--surface2); border-radius:4px; font-size:0.68rem; color:var(--text-muted); }
+
+/* INLINE TIP */
+.itip { display:flex; gap:8px; align-items:flex-start; padding:8px 12px; background:var(--surface2); border-radius:8px; margin-top:9px; font-size:0.78rem; color:var(--text-muted); line-height:1.45; }
+.itip .e { flex-shrink:0; font-size:0.92rem; margin-top:1px; }
+
+/* CONTRIB PILLS */
+.contrib-split { display:flex; gap:5px; flex-wrap:wrap; }
+.pill { padding:2px 9px; border-radius:20px; font-size:0.7rem; font-weight:600; }
+.pill-y { background:rgba(255,107,43,0.12); color:var(--fire-orange); }
+.pill-p { background:rgba(167,139,250,0.12); color:var(--partner); }
+.partner-dot { background:var(--partner) !important; }
+
+/* MOBILE NAV */
+.mobile-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); padding:7px 0 calc(7px + env(safe-area-inset-bottom)); z-index:100; }
+@media(max-width:620px){ .mobile-nav{display:flex;} .tabs-wrap{display:none;} .app-shell{padding-bottom:calc(76px + env(safe-area-inset-bottom));} }
+.mn-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer; padding:3px 0; color:var(--text-dim); font-family:'DM Sans',sans-serif; font-size:0.58rem; font-weight:500; transition:color 0.15s; }
+.mn-btn .ni { font-size:1.25rem; line-height:1; }
+.mn-btn.active { color:var(--fire-orange); }
+
+/* INPUT LAYOUT */
+.input-layout { display:flex; flex-direction:column; gap:14px; }
+
+/* EMPTY STATE */
+.empty { text-align:center; padding:50px 20px; color:var(--text-muted); }
+.empty .ei { font-size:2.6rem; margin-bottom:12px; }
+.empty p { font-size:0.9rem; margin-bottom:18px; line-height:1.5; }
+
+/* HISTORY */
+.hist-snapshot {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 14px; background:var(--surface2); border-radius:10px;
+  margin-bottom:8px; gap:10px; flex-wrap:wrap;
+}
+.hist-date { font-size:0.75rem; color:var(--text-muted); font-weight:500; white-space:nowrap; }
+.hist-stats { display:flex; gap:16px; flex-wrap:wrap; }
+.hist-stat { display:flex; flex-direction:column; gap:2px; }
+.hist-stat-label { font-size:0.62rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; }
+.hist-stat-val { font-size:0.88rem; font-weight:700; }
+.hist-del {
+  background:none; border:1px solid var(--border); color:var(--text-dim);
+  width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:0.75rem;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s;
+}
+.hist-del:hover { border-color:var(--ember); color:var(--ember); }
+.hist-empty-msg { text-align:center; padding:30px 20px; color:var(--text-muted); font-size:0.86rem; }
+.hist-chart-wrap { position:relative; height:240px; margin-bottom:14px; }
+.hist-clear-btn {
+  background:none; border:1px solid var(--border); color:var(--text-dim);
+  padding:5px 12px; border-radius:7px; cursor:pointer; font-size:0.75rem;
+  font-family:'DM Sans',sans-serif; transition:all 0.15s; margin-bottom:14px;
+}
+.hist-clear-btn:hover { border-color:var(--ember); color:var(--ember); }
+
+/* PRINT */
+@media print {
+  body { background:white !important; color:black !important; }
+  .btn,.tabs-wrap,.mobile-nav,.header-actions,.tt-overlay,.ib,.ft-ib { display:none !important; }
+  .card,.hero { break-inside:avoid; }
+  .view { display:block !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOOLTIP OVERLAY -->
+<div class="tt-overlay" id="ttOverlay" onclick="closeTT(event)">
+  <div class="tt-box">
+    <div class="tt-header">
+      <div class="tt-title" id="ttTitle"></div>
+      <button class="tt-close" onclick="closeTTBtn()">✕</button>
+    </div>
+    <div class="tt-body" id="ttBody"></div>
+    <div id="ttTagWrap"></div>
+  </div>
+</div>
+
+<div class="app-shell">
+  <header>
+    <div class="logo">
+      <div class="flame-icon">🔥</div>
+      <div>
+        <div class="logo-text">FIRE<span>track</span></div>
+        <div class="logo-sub">Financial Independence Journey</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="toggle-wrap" onclick="toggleMode()">
+        <div class="toggle" id="modeToggle"></div>
+        <span class="toggle-label" id="modeLabel">Light mode</span>
+      </div>
+      <button class="btn btn-ghost" onclick="exportPDF()">⬇ Export</button>
+      <button class="btn btn-fire" onclick="calculate(); showView('dashboard')">Calculate →</button>
+    </div>
+  </header>
+
+  <!-- DESKTOP TABS -->
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab" onclick="switchTab(this,'input')">📝 Profile</button>
+      <button class="tab active" onclick="switchTab(this,'dashboard')">🔥 Dashboard</button>
+      <button class="tab" onclick="switchTab(this,'projection')">📈 Projections</button>
+      <button class="tab" onclick="switchTab(this,'whatif')">🎯 What-If</button>
+      <button class="tab" onclick="switchTab(this,'tips')">💡 Tips</button>
+      <button class="tab" onclick="switchTab(this,'history')">📊 History</button>
+    </div>
+  </div>
+
+  <!-- ── INPUT VIEW ── -->
+  <div class="view" id="view-input">
+    <div class="section-heading">Your Financial Profile</div>
+    <div class="section-sub">Fill in what you know — tap any <strong style="color:var(--fire-orange)">ⓘ</strong> for a plain-English explanation of any field.</div>
+    <div class="input-layout">
+
+      <!-- PERSONAL -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Personal Info</div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Your Age</label>
+            <button class="ib" onclick="tt('Your Age','Your current age in years. This anchors your entire FIRE timeline — the earlier you start, the more compound growth works in your favor. Even starting at 35 vs 25 can mean 10 extra years of full-time work.','Personal')">i</button></div>
+            <input type="number" id="age" value="32" min="18" max="80">
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Target Retirement Age</label>
+            <button class="ib" onclick="tt('Target Retirement Age','The age you\'d like to achieve financial independence and retire early. Traditional FIRE targets range from 35–55. The further out your target, the more time compound interest has to do the heavy lifting.','FIRE Goal')">i</button></div>
+            <input type="number" id="retireAge" value="50">
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Dependents / Kids</label>
+            <button class="ib" onclick="tt('Dependents','Number of people relying on your income. More dependents typically mean higher expenses, college savings goals (529 accounts), and health insurance complexity — all affecting your FIRE timeline.','Planning')">i</button></div>
+            <select id="dependents"><option value="0">None</option><option value="1">1 child</option><option value="2">2 children</option><option value="3">3+ children</option></select>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Tax Filing Status</label>
+            <button class="ib" onclick="tt('Tax Filing Status','How you file with the IRS. Married Filing Jointly usually offers the most favorable tax brackets. This affects your effective tax rate, Roth IRA income limits, and capital gains tax rates.','Taxes')">i</button></div>
+            <select id="filingStatus"><option>Married Filing Jointly</option><option>Single</option><option>Head of Household</option></select>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:11px">
+          <label style="font-size:0.82rem;color:var(--text)">FIRE Type Goal</label>
+          <button class="ib" onclick="tt('FIRE Types','FIRE stands for Financial Independence, Retire Early. There are several flavors based on your target lifestyle spending. Tap the ⓘ on each type below for a full explanation and example FIRE numbers.','FIRE Concepts')">i</button>
+        </div>
+        <div class="fire-types">
+          <div class="ft-btn" onclick="setFT('lean',this)">
+            <button class="ft-ib" onclick="event.stopPropagation();tt('🥗 Lean FIRE','<strong>Lean FIRE</strong> means retiring on a very frugal budget — typically <strong>under $40,000/year</strong> for a household.<br><br><strong>✅ Pros:</strong> Achieve FI much faster, need a smaller portfolio (~$1M), simpler lifestyle<br><strong>❌ Cons:</strong> Very little margin for error, few luxuries, vulnerable to medical or unexpected costs<br><br><strong>Example FIRE Number:</strong> $30K/yr ÷ 4% = <strong>$750,000</strong><br><br>Best for: Minimalists, low cost-of-living areas, those willing to live very lean.','Lean FIRE')">i</button>
+            <div class="ft-icon">🥗</div><div class="ft-name">Lean</div><div class="ft-range">&lt;$40K/yr</div>
+          </div>
+          <div class="ft-btn active" onclick="setFT('regular',this)">
+            <button class="ft-ib" onclick="event.stopPropagation();tt('🔥 Regular FIRE','<strong>Regular FIRE</strong> is the classic version — retiring comfortably without being extravagant, typically <strong>$40,000–$80,000/year</strong>.<br><br><strong>✅ Pros:</strong> Balance of lifestyle and feasibility, works for most families<br><strong>❌ Cons:</strong> Requires significant savings discipline over many years<br><br><strong>Example FIRE Number:</strong> $60K/yr ÷ 4% = <strong>$1,500,000</strong><br><br>Best for: Most households who want real financial freedom without radical frugality.','Regular FIRE')">i</button>
+            <div class="ft-icon">🔥</div><div class="ft-name">Regular</div><div class="ft-range">$40–80K</div>
+          </div>
+          <div class="ft-btn" onclick="setFT('fat',this)">
+            <button class="ft-ib" onclick="event.stopPropagation();tt('🎩 Fat FIRE','<strong>Fat FIRE</strong> means retiring with a high-end lifestyle — typically <strong>$100,000+/year</strong> in spending, no compromises.<br><br><strong>✅ Pros:</strong> Full luxury retirement, large safety margin<br><strong>❌ Cons:</strong> Requires a very large portfolio ($2.5M–$5M+), takes longer<br><br><strong>Example FIRE Number:</strong> $120K/yr ÷ 4% = <strong>$3,000,000</strong><br><br>Best for: High earners who won\'t compromise their lifestyle or want to travel extensively in retirement.','Fat FIRE')">i</button>
+            <div class="ft-icon">🎩</div><div class="ft-name">Fat</div><div class="ft-range">$100K+</div>
+          </div>
+          <div class="ft-btn" onclick="setFT('coast',this)">
+            <button class="ft-ib" onclick="event.stopPropagation();tt('⛵ Coast FIRE','<strong>Coast FIRE</strong> means you\'ve saved enough that — <em>without ever adding another dollar</em> — your portfolio will compound to your FIRE number by a target retirement age on its own.<br><br><strong>The math:</strong> Coast Number = FIRE Number ÷ (1 + return rate)^years to retirement<br><br><strong>✅ Pros:</strong> Once reached, you only need to cover today\'s living expenses. You can downshift to lower-stress work, part-time, or passion projects.<br><strong>❌ Cons:</strong> You\'re still working (just not saving for retirement)<br><br>Best for: Those who saved aggressively early and want to slow down without stopping entirely.','Coast FIRE')">i</button>
+            <div class="ft-icon">⛵</div><div class="ft-name">Coast</div><div class="ft-range">Stop saving</div>
+          </div>
+          <div class="ft-btn" onclick="setFT('barista',this)">
+            <button class="ft-ib" onclick="event.stopPropagation();tt('☕ Barista FIRE','<strong>Barista FIRE</strong> (also called Semi-FIRE or Slow FIRE) means leaving your high-stress career but continuing <em>part-time or passion work</em> that covers day-to-day living expenses — letting your portfolio grow untouched.<br><br><strong>The name comes from:</strong> Starbucks baristas who work 20+ hrs/week and qualify for health benefits — solving early retirees\' biggest challenge: healthcare before Medicare at 65.<br><br><strong>✅ Pros:</strong> Social connection, employer health benefits, portfolio keeps compounding<br><strong>❌ Cons:</strong> Still technically working, income not fully passive<br><br>Best for: People escaping the grind who aren\'t ready (or don\'t need) to fully stop working.','Barista FIRE')">i</button>
+            <div class="ft-icon">☕</div><div class="ft-name">Barista</div><div class="ft-range">Part-time</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- YOUR INCOME -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Your Income</div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Annual Gross Salary</label>
+            <button class="ib" onclick="tt('Annual Gross Salary','Your total salary <em>before</em> taxes and deductions — what\'s on your W-2 or offer letter. If self-employed, use net income after business expenses. This is the base for calculating your savings rate.','Income')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="salary" value="95000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Annual Bonus / Variable Pay</label>
+            <button class="ib" onclick="tt('Bonus / Variable Pay','Performance bonuses, profit sharing, commissions, or other variable income beyond base salary. Use a realistic average — not your best year. Many FIRE practitioners invest 100% of their bonus.','Income')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="bonus" value="8000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>RSU Annual Vest Value</label>
+            <button class="ib" onclick="tt('RSUs — Restricted Stock Units','Company stock grants that vest over time (typically 4 years with a 1-year cliff). When they vest, they\'re taxed as ordinary income. Enter the expected annual vesting value.<br><br>RSU values fluctuate with stock price — conservative FIRE planners use a discounted estimate or zero them out entirely for planning purposes.','Income')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rsus" placeholder="0"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Side Hustle / Passive Income</label>
+            <button class="ib" onclick="tt('Side Hustle & Passive Income','Any income beyond your main job: freelancing, consulting, rental income, blog/content/YouTube revenue, dividend income from taxable accounts, etc.<br><br>This is powerful for FIRE — every dollar of passive income directly reduces the portfolio you need.','Income')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="sideIncome" placeholder="0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARTNER TOGGLE -->
+      <div>
+        <div class="partner-banner" onclick="togglePartner()">
+          <div class="partner-banner-info">
+            <div class="title">💜 Add Partner / Spouse Financials</div>
+            <div class="sub">Combine household income, assets & contributions for a full picture</div>
+          </div>
+          <div class="toggle partner-toggle" id="partnerToggle"></div>
+        </div>
+        <div class="partner-section" id="partnerSection">
+          <div class="card partner-card">
+            <div class="card-title"><span class="dot partner-dot"></span> Partner / Spouse Details</div>
+            <div class="two-col">
+              <div class="form-group">
+                <div class="label-row"><label>Partner Age</label>
+                <button class="ib" onclick="tt('Partner Age','Your partner\'s current age. Useful for coordinating retirement timing — an age gap may mean staggering FIRE dates (one partner retires while the other maintains employer health insurance).','Partner')">i</button></div>
+                <input type="number" id="partnerAge" placeholder="e.g. 30">
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Target Retire Age</label>
+                <button class="ib" onclick="tt('Partner Target Retirement Age','When your partner aims to stop working. This may differ from yours — for example, one partner retires at 45 while the other works until 50 for health insurance or additional income.','Partner')">i</button></div>
+                <input type="number" id="partnerRetireAge" placeholder="e.g. 50">
+              </div>
+            </div>
+            <div class="divider" style="margin:10px 0"></div>
+            <div class="section-label p">Partner Income</div>
+            <div class="two-col">
+              <div class="form-group">
+                <div class="label-row"><label>Partner Salary</label>
+                <button class="ib" onclick="tt('Partner Annual Salary','Your partner\'s gross annual salary. Dual-income households have a massive FIRE advantage — two salaries often means living on one and investing the other, effectively doubling your savings rate.','Partner Income')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerSalary" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Bonus / Variable</label>
+                <button class="ib" onclick="tt('Partner Bonus / Variable Pay','Any performance bonuses or variable compensation your partner earns annually. Enter a realistic average.','Partner Income')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerBonus" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner RSUs</label>
+                <button class="ib" onclick="tt('Partner RSU Vest Value','Your partner\'s annual RSU vesting value. If they work at a tech or public company this can be substantial — factor it into household savings planning.','Partner Income')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerRSUs" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Side Income</label>
+                <button class="ib" onclick="tt('Partner Side / Passive Income','Any freelance, rental, or passive income your partner earns outside their primary job.','Partner Income')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerSideIncome" placeholder="0"></div>
+              </div>
+            </div>
+            <div class="divider" style="margin:10px 0"></div>
+            <div class="section-label p">Partner Assets & Accounts</div>
+            <div class="two-col">
+              <div class="form-group">
+                <div class="label-row"><label>Partner 401(k) / 403(b) Balance</label>
+                <button class="ib" onclick="tt('Partner 401(k) Balance','Your partner\'s employer-sponsored retirement account balance. Tracked separately from yours — both grow tax-deferred and count toward your household FIRE portfolio.','Partner Assets')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401k" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner 401(k) Annual Contribution</label>
+                <button class="ib" onclick="tt('Partner 401(k) Contribution','How much your partner contributes annually including employer match. The 2024 employee limit is $23,000 ($30,500 if 50+). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing.','Partner Assets')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401kContrib" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Roth IRA</label>
+                <button class="ib" onclick="tt('Partner Roth IRA','Each spouse can have their own Roth IRA — growing tax-free with tax-free withdrawals in retirement. Both can contribute $7,000/yr ($8,000 if 50+) subject to joint income limits. Roth contributions can be withdrawn penalty-free at any age — a critical FIRE tool.','Partner Assets')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerRothIra" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner HSA</label>
+                <button class="ib" onclick="tt('Partner HSA','If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The family contribution limit is $8,300 in 2024 — invest it in index funds for the ultimate triple-tax-advantaged account.','Partner Assets')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerHSA" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Brokerage Account</label>
+                <button class="ib" onclick="tt('Partner Brokerage Account','Your partner\'s taxable investment account. No contribution limits, no withdrawal restrictions — can be accessed at any age. Essential as a FIRE bridge account before age 59½.','Partner Assets')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerBrokerage" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Social Security Est.</label>
+                <button class="ib" onclick="tt('Partner Social Security Estimate','Your partner\'s estimated annual SS benefit at full retirement age. Find it at ssa.gov/myaccount. Combined SS for a couple can significantly reduce your FIRE number — each $1,000/mo in SS = $300,000 less you need invested (at 4% SWR).','Partner Assets')">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerSS" placeholder="0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPENSES -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Spending & Expenses</div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Annual Household Spending</label>
+            <button class="ib" onclick="tt('Annual Household Spending','Your <strong>single most important FIRE number</strong>. Total annual expenses: housing, food, transportation, utilities, healthcare, entertainment, travel, and everything else.<br><br><strong>The Rule:</strong> FIRE Number = Annual Spending × 25 (at 4% SWR)<br><br>Cutting $500/month from expenses reduces your FIRE Number by $150,000 AND adds $6,000/yr to savings. Expense reduction is the most powerful FIRE lever.','Key Input ⚡')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="expenses" value="55000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Emergency Fund (months covered)</label>
+            <button class="ib" onclick="tt('Emergency Fund','How many months of expenses you have in liquid, accessible cash. Financial experts recommend 3–6 months.<br><br>FIRE practitioners often hold 1–2 <em>years</em> in cash/short bonds as a sequence-of-returns buffer — protecting against having to sell investments at a loss early in retirement when markets are down.','Foundation')">i</button></div>
+            <input type="number" id="emergencyMonths" value="4">
+          </div>
+        </div>
+        <div class="itip"><span class="e">🎯</span>Annual spending × 25 = your FIRE Number. Cutting $500/mo from expenses slashes your FIRE Number by $150,000 AND accelerates savings.</div>
+      </div>
+
+      <!-- YOUR ASSETS -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Your Assets & Accounts</div>
+        <div class="section-label">Tax-Advantaged Retirement</div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Traditional 401(k) / 403(b)</label>
+            <button class="ib" onclick="tt('Traditional 401(k) / 403(b)','Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>2024 limits:</strong> $23,000 employee / $69,000 total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free.','Tax-Deferred')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401" value="87000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Roth 401(k) Balance</label>
+            <button class="ib" onclick="tt('Roth 401(k)','After-tax contributions; <strong>withdrawals in retirement are completely tax-free</strong>, including growth. Shares the same $23,000 contribution limit with Traditional 401k — you split contributions between them however you like.<br><br>Best for: those who expect to be in a higher tax bracket in retirement, or want tax diversification. Many FIRE practitioners prefer Roth accounts to minimize taxes during a potentially long, low-income retirement.','Tax-Free')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="roth401k" placeholder="0"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Annual 401(k) Contribution</label>
+            <button class="ib" onclick="tt('Annual 401(k) Contribution','How much you contribute per year including employer match (Roth + Traditional combined). Maxing this out is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged.','Tax-Advantaged')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401Contrib" value="23000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Roth IRA Balance</label>
+            <button class="ib" onclick="tt('Roth IRA','Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>2024 limits:</strong> $7,000/yr ($8,000 if 50+)<br><strong>Income limits:</strong> $161K single / $240K married to contribute directly<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½.','Tax-Free')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIra" value="22000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Traditional IRA Balance</label>
+            <button class="ib" onclick="tt('Traditional IRA','Pre-tax contributions; grows tax-deferred. <strong>Withdrawals taxed as ordinary income.</strong><br><br>For FIRE, Traditional IRAs are often source accounts for <strong>Roth Conversion Ladders</strong> — converting funds to Roth over time in low-income early retirement years, dramatically reducing lifetime taxes.','Tax-Deferred')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="tradIra" placeholder="0"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>HSA Balance</label>
+            <button class="ib" onclick="tt('HSA — Health Savings Account','The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>2024 limits:</strong> $4,150 individual / $8,300 family<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>.','Tax-Free ⭐')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsa" value="9500"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Annual HSA Contribution</label>
+            <button class="ib" onclick="tt('Annual HSA Contribution','How much you add to your HSA yearly. Maxing this out ($4,150 individual / $8,300 family) is strongly recommended — it\'s the most tax-efficient account available to most Americans.','Tax-Advantaged')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsaContrib" value="4150"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">Taxable & Other Assets</div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Brokerage Account Balance</label>
+            <button class="ib" onclick="tt('Taxable Brokerage Account','A regular investment account with no contribution limits and no withdrawal restrictions — accessible at any age without penalty. Long-term capital gains are taxed at 0%, 15%, or 20% depending on income.<br><br><strong>FIRE Bridge Account:</strong> Essential for funding retirement spending <em>before</em> age 59½ when tax-advantaged accounts become accessible without penalty. JL Collins recommends VTSAX or a total market ETF here.','Investments')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="brokerage" value="34000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Annual Brokerage Contribution</label>
+            <button class="ib" onclick="tt('Brokerage Annual Contribution','How much you invest in your taxable account each year. After maxing tax-advantaged accounts (401k → IRA → HSA), all additional investing goes here.','Investments')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="brokerageContrib" value="5000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Home Market Value</label>
+            <button class="ib" onclick="tt('Home Market Value','Enter your home\'s current estimated market value (what it would sell for today). <strong>Do not subtract your mortgage</strong> — we calculate your equity automatically from market value minus mortgage balance.<br><br><strong>Your equity = Home Value − Mortgage Balance</strong><br><br>Home equity is a real asset but typically not counted toward your investable FIRE portfolio — you can\'t easily spend it while living there. Access options: downsizing, HELOC, reverse mortgage (60+).<br><br><strong>FIRE community rule of thumb:</strong> Don\'t buy a home worth more than 2.5× your household income. A $200K income household → $500K max home. Buying more ties up capital that could be compounding in the market.','Real Estate')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="homeEquity" value="350000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Cash / Savings / HYSA</label>
+            <button class="ib" onclick="tt('Cash & Savings','Money in checking, savings, money market accounts, or CDs. Your most liquid asset.<br><br>Key uses: emergency fund, short-term goals, and a retirement cash buffer. Holding too much long-term is a drag — inflation erodes it. High-yield savings accounts (HYSAs) currently pay 4–5% APY, making cash more competitive than it\'s been in decades.','Liquid Assets')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="cash" value="18000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>529 College Savings</label>
+            <button class="ib" onclick="tt('529 College Savings Plan','Tax-advantaged accounts for education expenses. Contributions grow tax-free and withdrawals for qualified expenses are tax-free.<br><br><strong>New in 2024:</strong> Up to $35,000 of unused 529 funds can be rolled to a Roth IRA (15-year rule, annual Roth limits apply) — making it less risky to over-save here.','Education')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="college" placeholder="0"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Pension / Annuity / Other</label>
+            <button class="ib" onclick="tt('Pension / Annuity / Other','Defined benefit pension plans, annuities, business equity, or other assets not listed above. Enter the current estimated lump-sum value.<br><br>A pension providing $2,000/month in income is equivalent to having $600,000 invested at 4% SWR — pensions are often undervalued in FIRE planning.','Other Assets')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="pension" placeholder="0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEBTS -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Debts & Liabilities</div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Mortgage Balance</label>
+            <button class="ib" onclick="tt('Mortgage Balance','The remaining amount owed on your home loan. Generally considered manageable debt — a home appreciates while your loan balance decreases.<br><br>In today\'s 6–7% rate environment, the decision to pay off early vs. invest extra cash is genuinely close. At rates below 4%, investing is almost always better. At 6%+, paying down becomes increasingly attractive.','Debt')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="mortgage" value="285000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Mortgage Rate (%)</label>
+            <button class="ib" onclick="tt('Mortgage Interest Rate','Your annual interest rate. The math: if your rate is above your expected real investment return, pay it down. If below, invest the difference.<br><br>Example: 3% mortgage vs. 7% expected returns = invest. 7% mortgage vs. 7% returns = pay down or split.','Debt')">i</button></div>
+            <input type="number" id="mortgageRate" value="6.5" step="0.1">
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Student Loans</label>
+            <button class="ib" onclick="tt('Student Loans','Federal or private education debt. Federal loans offer income-driven repayment and forgiveness programs.<br><br><strong>FIRE strategy:</strong> Compare your rate to expected investment returns — loans above 6–7% generally warrant aggressive payoff before extra investing. Loans below 5% may be worth carrying while investing the difference.','Debt')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="studentLoans" value="18000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Student Loan Rate (%)</label>
+            <button class="ib" onclick="tt('Student Loan Rate','Federal rates for 2023–24 range from 5.5% to 8.05%. Use this to compare against your investment return assumption to decide whether to aggressively pay down or invest the difference.','Debt')">i</button></div>
+            <input type="number" id="studentLoanRate" value="5.8" step="0.1">
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Car Loan(s)</label>
+            <button class="ib" onclick="tt('Car Loans','Auto loan balances. Cars depreciate — unlike mortgages, there\'s no underlying asset appreciation to offset the debt.<br><br>FIRE tip: Many FIRE practitioners drive older, reliable paid-off vehicles. The average car payment is ~$700/mo — that\'s $210,000 less you need invested (at 4% SWR) if you eliminate that expense.','Debt')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="carLoan" placeholder="0"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Credit Card Debt 🚨</label>
+            <button class="ib" onclick="tt('Credit Card Debt — Priority #1','High-interest debt, typically 20–29% APR. <strong>This is almost always your highest priority to eliminate.</strong><br><br>No investment reliably beats a guaranteed 25% return from paying off a credit card. Zero this out before investing beyond your employer 401k match.','Debt 🚨')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="ccDebt" placeholder="0"></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="form-group">
+          <div class="label-row"><label>Total Monthly Debt Payments</label>
+          <button class="ib" onclick="tt('Total Monthly Debt Payments','The sum of all your required monthly minimum payments — mortgage, car loan, student loans, credit cards, etc. Check your latest statements for exact figures.<br><br><strong>This is what mortgage underwriters actually measure</strong> as Debt-to-Income (DTI): your total monthly payments divided by your gross monthly income.<br><br><strong>Benchmarks:</strong><br>• Under 28% — excellent (housing only)<br>• Under 36% — strong (all debts combined)<br>• 36–43% — acceptable but watch it<br>• Above 43% — lenders may decline; prioritize paydown<br><br><strong>Note:</strong> Total debt balances relative to income is a completely different metric — it\'s normal for a mortgage balance alone to be 2–4× annual income.','Debt-to-Income')">i</button></div>
+          <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="monthlyDebtPayments" placeholder="e.g. 2400"></div>
+        </div>
+        <div class="itip"><span class="e">💡</span>Add up your mortgage payment, minimum credit card payments, car payments, and student loan payments from your statements. This is the number lenders and financial advisors actually use.</div>
+      </div>
+
+      <!-- ASSUMPTIONS -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Return & Tax Assumptions</div>
+        <div class="itip" style="margin-bottom:14px"><span class="e">📌</span><strong>All projections use real (inflation-adjusted) returns</strong> — meaning all values shown are in today's purchasing power. A 7% real return already accounts for ~3% inflation, so a $1.5M FIRE number in your projection means $1.5M in today's dollars, not future inflated dollars.</div>
+        <div class="slider-group" style="margin-bottom:14px">
+          <div class="slider-header">
+            <div class="label-row">
+              <label>Expected Annual Return (real, inflation-adjusted)</label>
+              <button class="ib" onclick="tt('Expected Real Annual Return','The annual investment return <strong>after subtracting inflation (~3%)</strong>. All projections are in today\'s dollars — so your FIRE Number means the same purchasing power it does now.<br><br>Historical US stock market: ~10% nominal, ~7% real.<br><br><strong>Conservative:</strong> 5–6% (bond-heavy or cautious)<br><strong>Moderate:</strong> 7% (classic total market index)<br><strong>Aggressive:</strong> 8–9% (100% equities, long horizon)<br><br>Vanguard\'s 2024 forecast: 4.2–6.2% real for a balanced portfolio. Use 7% as a reasonable base case for long-term all-equity investing.','Returns')">i</button>
+            </div>
+            <div class="slider-val" id="returnVal">7%</div>
+          </div>
+          <input type="range" id="returnRate" min="3" max="12" value="7" step="0.5" oninput="document.getElementById('returnVal').textContent=this.value+'%'">
+          <div class="itip"><span class="e">💡</span>JL Collins: long-term index investors have historically earned ~7% real. Use 5–6% if you want to be conservative.</div>
+        </div>
+        <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Safe Withdrawal Rate (SWR)</label>
+            <button class="ib" onclick="tt('Safe Withdrawal Rate (SWR)','The percentage of your portfolio you withdraw in year one of retirement, then adjust for inflation annually.<br><br><strong>The 4% Rule (Bengen, 1994):</strong> 4% survived every historical 30-year period including the Great Depression and 1970s stagflation.<br><br><strong>For early retirees (40–60 yr timelines):</strong> Consider 3–3.5%<br><strong>For traditional retirees (30 yrs):</strong> 4% is well-established<br><strong>Flexible spenders:</strong> 4.5–5% works if you can cut back in bad markets<br><br><strong>Formula:</strong> FIRE Number = Annual Expenses ÷ SWR','Core Concept')">i</button></div>
+            <select id="swr">
+              <option value="3">3% (Ultra-conservative)</option>
+              <option value="3.5">3.5% (Conservative)</option>
+              <option value="4" selected>4% (The Rule)</option>
+              <option value="4.5">4.5% (Moderate)</option>
+              <option value="5">5% (Aggressive)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Your Social Security Estimate</label>
+            <button class="ib" onclick="tt('Social Security Estimate','Your estimated annual SS benefit at full retirement age (67 for those born after 1960). Find your personalized estimate at <strong>ssa.gov/myaccount</strong>.<br><br><strong>FIRE impact:</strong> SS directly reduces how much you need invested. Each $1,000/month in SS = ~$300,000 less in your FIRE number at 4% SWR.<br><br>Early retirees often use a conservative estimate or zero (since reduced early claiming or a long gap may apply).','Social Security')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="socialSecurity" value="18000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Est. Retirement Tax Rate</label>
+            <button class="ib" onclick="tt('Estimated Retirement Tax Rate','Your expected effective (average) tax rate in retirement — used to estimate how much you need to withdraw gross to net your target spending.<br><br><strong>Why it matters:</strong> Every dollar from a Traditional 401k or IRA is taxed as ordinary income. If you need $60K/yr and your effective tax rate is 15%, you actually need to withdraw ~$70,600 gross.<br><br><strong>Roth accounts and HSA (medical) withdrawals are tax-free</strong> — no grossing up needed.<br><br>Many early retirees have very low effective rates (5–15%) due to low income in early retirement — a key FIRE advantage. Use the Roth conversion ladder to further reduce this.','Tax Planning')">i</button></div>
+            <div class="input-wrap has-suffix"><input type="number" id="retireTaxRate" value="15" min="0" max="50" step="1"><span class="input-suffix">%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding-top:6px">
+        <button class="btn btn-fire" style="padding:14px 32px;font-size:0.98rem;width:100%;max-width:380px" onclick="calculate(); showView('dashboard')">
+          🔥 Calculate My FIRE Journey →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD VIEW ── -->
+  <div class="view active" id="view-dashboard">
+    <div id="dashContent">
+      <div class="empty">
+        <div class="ei">🔥</div>
+        <p>Fill in your profile and tap <strong>Calculate</strong> to see your personalized FIRE dashboard!</p>
+        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROJECTION VIEW ── -->
+  <div class="view" id="view-projection">
+    <div id="projContent">
+      <div class="empty">
+        <div class="ei">📈</div>
+        <p>Calculate your journey first to see growth projections.</p>
+        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WHAT-IF VIEW ── -->
+  <div class="view" id="view-whatif">
+    <div id="whatifContent">
+      <div class="empty">
+        <div class="ei">🎯</div>
+        <p>Calculate first to explore what-if scenarios.</p>
+        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TIPS VIEW ── -->
+  <div class="view" id="view-tips">
+    <div class="section-heading">Tips & Expert Insights</div>
+    <div class="section-sub">Wisdom from the leading voices in the FIRE movement and personal finance.</div>
+    <div id="tipsContent"></div>
+  </div>
+
+  <!-- ── HISTORY VIEW ── -->
+  <div class="view" id="view-history">
+    <div class="section-heading">Your Progress Over Time</div>
+    <div class="section-sub">Every time you recalculate, FIREtrack saves a snapshot. Revisit monthly to watch your wealth grow.</div>
+    <div id="historyContent">
+      <div class="empty">
+        <div class="ei">📊</div>
+        <p>No history yet. Hit <strong>Calculate</strong> to record your first snapshot!</p>
+        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <button class="mn-btn" onclick="switchTab(this,'input')" data-view="input"><span class="ni">📝</span><span>Profile</span></button>
+  <button class="mn-btn active" onclick="switchTab(this,'dashboard')" data-view="dashboard"><span class="ni">🔥</span><span>Dashboard</span></button>
+  <button class="mn-btn" onclick="switchTab(this,'projection')" data-view="projection"><span class="ni">📈</span><span>Forecast</span></button>
+  <button class="mn-btn" onclick="switchTab(this,'whatif')" data-view="whatif"><span class="ni">🎯</span><span>What-If</span></button>
+  <button class="mn-btn" onclick="switchTab(this,'tips')" data-view="tips"><span class="ni">💡</span><span>Tips</span></button>
+  <button class="mn-btn" onclick="switchTab(this,'history')" data-view="history"><span class="ni">📊</span><span>History</span></button>
+</nav>
+
+<!-- DISCLAIMER FOOTER -->
+<footer style="padding:20px 16px 110px;border-top:1px solid var(--border);margin-top:16px">
+  <p style="font-size:0.72rem;color:var(--text-dim);line-height:1.7;text-align:center;max-width:800px;margin:0 auto">
+    <strong style="color:var(--text-muted)">📋 Educational use only — not financial advice.</strong><br>
+    FIREtrack is a personal planning tool. All projections use real (inflation-adjusted) returns and are illustrative — actual results will vary based on market conditions, tax law changes, and individual circumstances. Consult a licensed financial advisor, CPA, or tax professional before making investment, retirement, or tax decisions. 
+    <strong style="color:var(--text-muted)">Your data never leaves your browser.</strong> Nothing is transmitted to any server.
+  </p>
+</footer>
+<script>
+// ── STATE ──
+let darkMode = true, partnerOn = false, calculated = false, state = {};
+let projChart = null, allocChart = null;
+
+// ── TOOLTIP ──
+function tt(title, body, tag) {
+  document.getElementById('ttTitle').textContent = title;
+  document.getElementById('ttBody').innerHTML = body;
+  document.getElementById('ttTagWrap').innerHTML = tag ? `<span class="tt-tag">📌 ${tag}</span>` : '';
+  document.getElementById('ttOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTT(e) { if (e.target === document.getElementById('ttOverlay')) closeTTBtn(); }
+function closeTTBtn() { document.getElementById('ttOverlay').classList.remove('open'); document.body.style.overflow = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTTBtn(); });
+
+// ── MODE ──
+function toggleMode() {
+  darkMode = !darkMode;
+  document.body.classList.toggle('light-mode', !darkMode);
+  document.getElementById('modeToggle').classList.toggle('on', !darkMode);
+  document.getElementById('modeLabel').textContent = darkMode ? 'Light mode' : 'Dark mode';
+  if (calculated) setTimeout(renderCharts, 60);
+}
+
+// ── PARTNER ──
+function togglePartner() {
+  partnerOn = !partnerOn;
+  document.getElementById('partnerToggle').classList.toggle('on', partnerOn);
+  document.getElementById('partnerSection').classList.toggle('open', partnerOn);
+}
+const pOn = () => document.getElementById('partnerSection').classList.contains('open');
+
+// ── FIRE TYPE ──
+function setFT(type, el) {
+  document.querySelectorAll('.ft-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── TABS ──
+function switchTab(el, view) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll(`.tab[onclick*="'${view}'"]`).forEach(t => t.classList.add('active'));
+  document.querySelectorAll('.mn-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll(`.mn-btn[data-view="${view}"]`).forEach(b => b.classList.add('active'));
+  showView(view);
+}
+function showView(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  if (v === 'tips') renderTips();
+  if (v === 'history') renderHistory();
+  window.scrollTo(0,0);
+}
+
+// ── HELPERS ──
+const fmt = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+const fmtN = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(n);
+const gv = id => parseFloat(document.getElementById(id)?.value)||0;
+
+// ── CALCULATE ──
+function calculate() {
+  const age = gv('age'), retireAge = gv('retireAge'), ytf = Math.max(retireAge-age,1);
+  const hasP = pOn();
+
+  const salary=gv('salary'),bonus=gv('bonus'),rsus=gv('rsus'),side=gv('sideIncome');
+  const pSalary=hasP?gv('partnerSalary'):0, pBonus=hasP?gv('partnerBonus'):0, pRSUs=hasP?gv('partnerRSUs'):0, pSide=hasP?gv('partnerSideIncome'):0;
+  const youInc = salary+bonus+rsus+side, partInc = pSalary+pBonus+pRSUs+pSide, totalInc = youInc+partInc;
+
+  const expenses=gv('expenses'), swr=gv('swr')/100, ss=gv('socialSecurity'), pSS=hasP?gv('partnerSS'):0, totalSS=ss+pSS;
+  const retireTaxRate = gv('retireTaxRate')/100;
+
+  // Account balances — separate Roth vs Traditional
+  const k401=gv('k401'), roth401k=gv('roth401k');         // Traditional vs Roth 401k
+  const roth=gv('rothIra'), tIra=gv('tradIra');            // Roth vs Traditional IRA
+  const hsa=gv('hsa'), brok=gv('brokerage'), cash=gv('cash');
+  const homeVal=gv('homeEquity'), pens=gv('pension'), col=gv('college');
+  const k401c=gv('k401Contrib'), hsac=gv('hsaContrib'), brokc=gv('brokerageContrib');
+
+  const p401=hasP?gv('partner401k'):0, p401c=hasP?gv('partner401kContrib'):0;
+  const pRoth=hasP?gv('partnerRothIra'):0, pHSA=hasP?gv('partnerHSA'):0, pBrok=hasP?gv('partnerBrokerage'):0;
+
+  const mortgage=gv('mortgage'), stuLoans=gv('studentLoans'), carL=gv('carLoan'), ccD=gv('ccDebt');
+  const rr = gv('returnRate')/100;
+  const em = gv('emergencyMonths'), efund = (expenses/12)*em;
+
+  // Home equity = market value − mortgage (fixed double-count bug)
+  const homeEq = Math.max(0, homeVal - mortgage);
+
+  // Pre-tax (taxable on withdrawal) vs tax-free accounts
+  const preTaxYou = k401 + tIra;
+  const taxFreeYou = roth401k + roth + hsa;
+  const taxableYou = brok;
+  const preTaxPart = hasP ? p401 : 0;
+  const taxFreePart = hasP ? pRoth + pHSA : 0;
+  const taxablePart = hasP ? pBrok : 0;
+  const totalPreTax = preTaxYou + preTaxPart;
+  const totalTaxFree = taxFreeYou + taxFreePart;
+  const totalTaxable = taxableYou + taxablePart;
+
+  const youAssets = k401+roth401k+roth+tIra+hsa+brok+cash+homeVal+pens+col;
+  const partAssets = p401+pRoth+pHSA+pBrok;
+  const totalAssets = youAssets + partAssets;
+  const totalDebts = mortgage + stuLoans + carL + ccD;
+  const netWorth = totalAssets - totalDebts;   // homeVal - mortgage = equity, correct
+
+  const youInv = k401+roth401k+roth+tIra+hsa+brok+Math.max(0,cash-efund)+pens;
+  const partInv = p401+pRoth+pHSA+pBrok;
+  const totalInv = youInv + partInv;
+
+  const adjExp = Math.max(0, expenses - totalSS);
+  const fireNum = swr > 0 && adjExp > 0 ? adjExp / swr : 0;
+  const youC = k401c+hsac+brokc, partC = p401c, totalC = youC+partC;
+  const savRate = totalInc>0 ? totalC/totalInc : 0;
+  const progress = fireNum > 0 ? Math.min(1, totalInv / fireNum) : 0;
+  const coastNum = fireNum > 0 ? fireNum / Math.pow(1+rr, ytf) : 0;
+  const isCoast = coastNum > 0 && totalInv >= coastNum;
+
+  // Tax-adjusted gross withdrawal needed from pre-tax accounts
+  // Roth and HSA (medical) withdrawals are tax-free; pre-tax and brokerage are taxed
+  const preTaxPct = totalInv > 0 ? totalPreTax/totalInv : 0;
+  const taxablePct = totalInv > 0 ? totalTaxable/totalInv : 0;
+  // Blended effective rate on the taxable portion of withdrawals
+  const blendedTaxRate = (preTaxPct + taxablePct * 0.5) * retireTaxRate; // brokerage ~half rate (cap gains)
+  const grossWithdrawal = adjExp > 0 ? adjExp / (1 - blendedTaxRate) : 0;
+  const taxDrag = Math.max(0, grossWithdrawal - adjExp);
+
+  // Projection — CORRECT: stop contributions at FIRE, start withdrawals
+  let portfolio = totalInv, fireYear = null;
+  const pd=[], pl=[];
+  for(let y=0;y<=60;y++){
+    pd.push(Math.round(portfolio));
+    pl.push((age+y).toString());
+    if(portfolio >= fireNum && fireYear === null) fireYear = y;
+    const retired = fireYear !== null && y >= fireYear;
+    if(retired) {
+      portfolio = Math.max(0, portfolio*(1+rr) - adjExp);
+    } else {
+      portfolio = portfolio*(1+rr) + totalC;
+    }
+  }
+
+  state = { age,retireAge,ytf,hasP,youInc,partInc,totalInc,expenses,swr,
+    k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pens,col,p401,pRoth,pHSA,pBrok,
+    totalAssets,totalDebts,netWorth,totalInv,youInv,partInv,youAssets,partAssets,
+    fireNum,adjExp,savRate,totalC,youC,partC,progress,pd,pl,fireYear,
+    coastNum,isCoast,rr,ss,pSS,totalSS,k401c,hsac,brokc,p401c,
+    mortgage,stuLoans,carL,ccD, mortgageRate:gv('mortgageRate'),efund,
+    totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate };
+
+  calculated = true;
+  saveInputs();
+  addSnapshot(state);
+  renderDash(); renderProj(); renderWhatIf();
+}
+
+// ── DASHBOARD ──
+function renderDash(){
+  const s=state, pp=Math.round(s.progress*100), srP=Math.round(s.savRate*100);
+  const fyd = s.fireYear!==null ? `Age ${s.age+s.fireYear}${s.fireYear===0?' 🎉':` (~${s.fireYear} yrs)`}` : 'Beyond 60yr range';
+  const efM = s.expenses>0 ? (s.cash/(s.expenses/12)).toFixed(1) : '—';
+  const efOk = parseFloat(efM)>=3;
+  const monthlyDebtPmt = gv('monthlyDebtPayments');
+  const monthlyInc = s.totalInc / 12;
+  const dti = monthlyInc > 0 && monthlyDebtPmt > 0 ? monthlyDebtPmt / monthlyInc : null;
+  const ms = [{l:'25% 🌱',e:s.progress>=0.25},{l:'50% 🔥',e:s.progress>=0.5},{l:'75% 🚀',e:s.progress>=0.75},{l:'FI! 🎉',e:s.progress>=1},{l:'Coast ⛵',e:s.isCoast}];
+
+  // Tax breakdown
+  const totalInvForTax = Math.max(1, s.totalInv);
+  const preTaxPct = Math.round(s.totalPreTax/totalInvForTax*100);
+  const taxFreePct = Math.round(s.totalTaxFree/totalInvForTax*100);
+  const taxablePct = 100 - preTaxPct - taxFreePct;
+
+  document.getElementById('dashContent').innerHTML=`
+    <div class="hero" id="heroCard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:18px">
+        <div style="flex:1;min-width:180px">
+          <div class="hero-label">🎯 Your FIRE Number</div>
+          <div class="hero-amount">${fmt(s.fireNum)}</div>
+          <div class="hero-sub">${s.swr*100}% SWR · ${fmt(s.expenses)}/yr expenses${s.totalSS>0?' · '+fmt(s.totalSS)+'/yr SS offset':''} · all in today's dollars</div>
+          <div class="milestones">${ms.map(m=>`<div class="badge ${m.e?'earned':'locked'}">${m.e?'✓':'○'} ${m.l}</div>`).join('')}</div>
+        </div>
+        <div style="text-align:center;flex-shrink:0">
+          <div class="gauge-wrap">
+            <canvas id="gaugeCanvas" width="170" height="95"></canvas>
+            <div class="gauge-center">
+              <div class="gauge-pct">${pp}%</div>
+              <div class="gauge-label">of FIRE</div>
+            </div>
+          </div>
+          <div style="font-size:0.73rem;color:var(--text-muted)">${fmt(s.totalInv)} invested</div>
+        </div>
+      </div>
+      <div class="hero-grid">
+        <div><div class="h-stat-label">Projected FIRE Age</div><div class="h-stat-val o">${fyd}</div></div>
+        <div><div class="h-stat-label">Net Worth</div><div class="h-stat-val g">${fmt(s.netWorth)}</div></div>
+        <div><div class="h-stat-label">Annual Savings</div><div class="h-stat-val t">${fmt(s.totalC)}</div></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Savings Rate</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1;margin-bottom:3px">${srP}%</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:9px">of gross income invested</div>
+        <div class="srm-track"><div class="srm-fill" style="width:${Math.min(100,srP)}%">${srP>12?srP+'%':''}</div></div>
+        <div class="srm-zones"><span>0</span><span>10%</span><span>25%</span><span>50%</span><span>70%🔥</span></div>
+        ${s.hasP?`<div class="contrib-split" style="margin-top:8px"><span class="pill pill-y">You: ${fmt(s.youC)}</span><span class="pill pill-p">Partner: ${fmt(s.partC)}</span></div>`:''}
+        <div class="itip"><span class="e">💡</span>${srP>=50?'Outstanding! 50% savings rate = FI in ~17 years from zero (MMM).':srP>=25?'Solid rate. Reaching 50% could cut your timeline roughly in half.':'Even 1% more per paycheck compounds dramatically — automate it!'}</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Coast FIRE</div>
+        <div style="font-size:0.81rem;color:var(--text-muted);line-height:1.5">Could you stop contributing today and coast to FIRE via compounding alone?</div>
+        <div class="coast-hi">
+          <div class="coast-label">Coast Number</div>
+          <div class="coast-val">${fmt(s.coastNum)}</div>
+        </div>
+        ${s.isCoast?`<div class="badge earned" style="font-size:0.8rem;padding:7px 11px;margin-top:10px;display:inline-flex">⛵ Coast FIRE reached!</div><div class="itip" style="margin-top:8px"><span class="e">🎉</span>Your portfolio will compound to FIRE by retirement without new contributions. Keep investing to retire even earlier!</div>`:
+        `<div style="font-size:0.81rem;color:var(--text-muted);margin-top:10px">${fmt(s.coastNum-s.totalInv)} more needed for Coast FIRE.</div>`}
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Asset Breakdown</div>
+        ${assetBar('Trad. 401k'+(s.hasP?' (You)':''),s.k401,s.totalAssets,'#FF6B2B')}
+        ${s.roth401k?assetBar('Roth 401k (You)',s.roth401k,s.totalAssets,'#FF8C42'):''}
+        ${s.hasP&&s.p401?assetBar('401k (Partner)',s.p401,s.totalAssets,'#A78BFA'):''}
+        ${assetBar('Roth IRA'+(s.hasP?' (You)':''),s.roth,s.totalAssets,'#FFB347')}
+        ${s.hasP&&s.pRoth?assetBar('Roth (Partner)',s.pRoth,s.totalAssets,'#C4B5FD'):''}
+        ${assetBar('HSA',s.hsa+(s.hasP?s.pHSA:0),s.totalAssets,'#FFE066')}
+        ${assetBar('Brokerage',s.brok+(s.hasP?s.pBrok:0),s.totalAssets,'#4ADE80')}
+        ${assetBar('Home Value',s.homeVal,s.totalAssets,'#2DD4BF')}
+        ${assetBar('Cash',s.cash,s.totalAssets,'#818CF8')}
+        <div class="stat-row" style="margin-top:4px">
+          <span class="stat-row-label" style="color:var(--ember)">Total Debts</span>
+          <span class="stat-row-val" style="color:var(--ember)">−${fmt(s.totalDebts)}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-row-label">Home Equity</span>
+          <span class="stat-row-val" style="color:var(--teal)">${fmt(s.homeEq)}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-row-label" style="font-weight:600">Net Worth</span>
+          <span class="stat-row-val" style="color:var(--green)">${fmt(s.netWorth)}</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Financial Health</div>
+        ${hc('Emergency Fund',efM+' months',efOk,efOk?'3+ months ✓':'Target: 3–6 months')}
+        ${hc('Savings Rate',srP+'%',srP>=20,srP>=20?'On track ✓':'Target: 20%+ for FIRE')}
+        ${dti !== null
+          ? hc('Payment DTI', (dti*100).toFixed(0)+'%', dti < 0.36,
+              dti < 0.28 ? 'Excellent ✓ (housing alone)' :
+              dti < 0.36 ? 'Strong ✓ (all debts)' :
+              dti < 0.43 ? 'Acceptable — watch it' :
+              '⚠️ High — lenders may flag this')
+          : ''}
+        ${hc('401(k) Maxed?',fmt(s.k401c),s.k401c>=23000,s.k401c>=23000?'Maxed ✓':'2024 limit: $23,000')}
+        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=4150,s.hsac>=4150?'Maxed ✓':'2024 limit: $4,150')}
+        ${s.ccD>0?hc('Credit Card Debt',fmt(s.ccD),false,'⚠️ Highest priority — pay first!'):''}
+        ${s.hasP?hc('Partner 401k Maxed?',fmt(s.p401c),s.p401c>=23000,s.p401c>=23000?'Maxed ✓':'2024 limit: $23,000'):''}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot"></span> Tax Picture in Retirement</div>
+      <div class="grid-3" style="gap:10px;margin-bottom:12px">
+        <div><div class="h-stat-label">Pre-Tax Accounts</div>
+          <div class="h-stat-val" style="font-size:1rem;color:var(--fire-amber)">${fmt(s.totalPreTax)}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Trad 401k + Trad IRA · taxed on withdrawal</div></div>
+        <div><div class="h-stat-label">Tax-Free Accounts</div>
+          <div class="h-stat-val" style="font-size:1rem;color:var(--green)">${fmt(s.totalTaxFree)}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Roth 401k + Roth IRA + HSA · tax-free</div></div>
+        <div><div class="h-stat-label">Taxable Brokerage</div>
+          <div class="h-stat-val" style="font-size:1rem;color:var(--teal)">${fmt(s.totalTaxable)}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px">Capital gains rates · 0–20%</div></div>
+      </div>
+      <div style="height:10px;background:var(--surface3);border-radius:5px;overflow:hidden;margin-bottom:6px;display:flex">
+        <div style="width:${preTaxPct}%;background:var(--fire-amber);transition:width 0.7s"></div>
+        <div style="width:${taxFreePct}%;background:var(--green);transition:width 0.7s"></div>
+        <div style="width:${Math.max(0,100-preTaxPct-taxFreePct)}%;background:var(--teal);transition:width 0.7s"></div>
+      </div>
+      <div style="display:flex;gap:12px;font-size:0.68rem;color:var(--text-muted);margin-bottom:12px">
+        <span>🟡 Pre-tax ${preTaxPct}%</span><span>🟢 Tax-free ${taxFreePct}%</span><span>🔵 Brokerage ${100-preTaxPct-taxFreePct}%</span>
+      </div>
+      ${s.adjExp>0?`<div class="stat-row">
+        <div><div class="stat-row-label">Target annual spending</div><div style="font-size:0.68rem;color:var(--text-dim)">In today's dollars</div></div>
+        <div class="stat-row-val">${fmt(s.adjExp)}</div>
+      </div>
+      <div class="stat-row">
+        <div><div class="stat-row-label">Est. gross withdrawal needed</div><div style="font-size:0.68rem;color:var(--text-dim)">At ${Math.round(s.retireTaxRate*100)}% effective rate on taxable accounts</div></div>
+        <div class="stat-row-val" style="color:var(--fire-amber)">${fmt(s.grossWithdrawal)}</div>
+      </div>
+      <div class="stat-row">
+        <div><div class="stat-row-label">Estimated annual tax drag</div><div style="font-size:0.68rem;color:var(--text-dim)">The gap you must bridge</div></div>
+        <div class="stat-row-val" style="color:var(--ember)">${fmt(s.taxDrag)}</div>
+      </div>`:''}
+      <div class="itip" style="margin-top:8px"><span class="e">💡</span>Roth conversion ladders in early retirement can dramatically reduce this tax drag — converting pre-tax funds during low-income years at 0–12% rates instead of higher rates later.</div>
+    </div>
+
+    ${s.hasP?`<div class="card" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot partner-dot"></span> Household Combined Summary</div>
+      <div class="grid-3">
+        <div><div class="h-stat-label">Combined Income</div>
+          <div class="h-stat-val" style="font-size:1rem;margin-bottom:5px">${fmt(s.totalInc)}</div>
+          <div class="contrib-split"><span class="pill pill-y">You: ${fmt(s.youInc)}</span><span class="pill pill-p">Partner: ${fmt(s.partInc)}</span></div></div>
+        <div><div class="h-stat-label">Combined Investable</div>
+          <div class="h-stat-val" style="font-size:1rem;margin-bottom:5px">${fmt(s.totalInv)}</div>
+          <div class="contrib-split"><span class="pill pill-y">You: ${fmt(s.youInv)}</span><span class="pill pill-p">Partner: ${fmt(s.partInv)}</span></div></div>
+        <div><div class="h-stat-label">Combined Social Security</div>
+          <div class="h-stat-val t" style="font-size:1rem;margin-bottom:5px">${fmt(s.totalSS)}</div>
+          <div class="contrib-split"><span class="pill pill-y">You: ${fmt(s.ss)}</span><span class="pill pill-p">Partner: ${fmt(s.pSS)}</span></div></div>
+      </div></div>`:''}`;
+
+  setTimeout(()=>drawGauge(s.progress),60);
+}
+
+function assetBar(name,val,total,color){
+  if(!val||val<=0) return '';
+  const pw=total>0?Math.max(3,(val/total)*100):0, pct=total>0?((val/total)*100).toFixed(0)+'%':'';
+  return `<div class="nw-bar"><div class="nw-bar-label"><span>${name}</span><span>${fmt(val)} <span style="color:var(--text-dim)">${pct}</span></span></div><div class="nw-bar-track"><div class="nw-bar-fill" style="width:${pw}%;background:${color}"></div></div></div>`;
+}
+function hc(label,val,ok,note){
+  return `<div class="stat-row"><div><div class="stat-row-label">${label}</div><div style="font-size:0.68rem;color:var(--text-dim)">${note}</div></div><div style="display:flex;align-items:center;gap:5px"><span style="font-size:0.84rem;font-weight:600;color:${ok?'var(--green)':'var(--fire-amber)'}">${val}</span><span>${ok?'✅':'⚠️'}</span></div></div>`;
+}
+
+// ── GAUGE ──
+function drawGauge(progress){
+  const c=document.getElementById('gaugeCanvas'); if(!c) return;
+  const ctx=c.getContext('2d'), cx=85, cy=90, r=70;
+  ctx.clearRect(0,0,170,95);
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,2*Math.PI); ctx.lineWidth=15;
+  ctx.strokeStyle=darkMode?'#2A2A2A':'#E0D8CC'; ctx.lineCap='round'; ctx.stroke();
+  const p=Math.min(progress,1);
+  if(p>0){
+    const g=ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+    g.addColorStop(0,'#FFB347'); g.addColorStop(0.5,'#FF6B2B'); g.addColorStop(1,'#FF4500');
+    ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,Math.PI+p*Math.PI);
+    ctx.lineWidth=15; ctx.strokeStyle=g; ctx.lineCap='round'; ctx.stroke();
+    const a=Math.PI+p*Math.PI, dx=cx+r*Math.cos(a), dy=cy+r*Math.sin(a);
+    ctx.beginPath(); ctx.arc(dx,dy,7,0,2*Math.PI);
+    ctx.fillStyle='#FF6B2B'; ctx.shadowColor='#FF6B2B'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+  }
+}
+
+// ── PROJECTION ──
+function renderProj(){
+  const s=state;
+  const rrDisplay = parseFloat((s.rr*100).toFixed(1));
+  document.getElementById('projContent').innerHTML=`
+    <div class="section-heading">Portfolio Growth Forecast</div>
+    <div class="section-sub">${rrDisplay}% real return (inflation-adjusted) · ${fmt(s.totalC)}/yr contributions · all values in today's dollars</div>
+    <div class="itip" style="margin-bottom:14px"><span class="e">📌</span>The chart shows <strong>accumulation phase</strong> until your FIRE year, then switches to <strong>drawdown phase</strong> — contributions stop and ${fmt(s.adjExp)}/yr is withdrawn. A flat or gently declining line post-FIRE is healthy; a steep drop means revisiting your SWR or expenses.</div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;flex-wrap:wrap;gap:8px">
+        <div class="card-title" style="margin-bottom:0"><span class="dot"></span> Net Worth Trajectory</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:0.7rem;color:var(--text-dim)">Scroll or pinch to zoom · drag to pan</span>
+          <button class="btn btn-ghost" style="padding:5px 11px;font-size:0.72rem" onclick="if(projChart)projChart.resetZoom()">↺ Reset</button>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:260px"><canvas id="projChart"></canvas></div>
+    </div>
+    <div class="grid-3" style="margin-bottom:14px">
+      <div class="card"><div class="card-title"><span class="dot"></span> 5 Years</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.65rem;color:var(--fire-orange)">${fmt(s.pd[5]||0)}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">Age ${s.age+5}</div></div>
+      <div class="card"><div class="card-title"><span class="dot"></span> 10 Years</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.65rem;color:var(--fire-orange)">${fmt(s.pd[10]||0)}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">Age ${s.age+10}</div></div>
+      <div class="card"><div class="card-title"><span class="dot"></span> 20 Years</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.65rem;color:var(--fire-orange)">${fmt(s.pd[20]||0)}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">Age ${s.age+20}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot"></span> Asset Allocation</div>
+      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+        <div style="width:170px;height:170px;flex-shrink:0"><canvas id="allocChart"></canvas></div>
+        <div style="flex:1;min-width:140px">${allocLegend()}</div>
+      </div>
+    </div>`;
+  setTimeout(renderCharts,60);
+}
+
+function allocLegend(){
+  const s=state;
+  return [['Trad. 401k',s.k401,'#FF6B2B'],['Roth 401k',s.roth401k,'#FF8C42'],
+    ['Partner 401k',s.p401,'#A78BFA'],['Roth IRA',s.roth+s.pRoth,'#FFB347'],
+    ['Trad. IRA',s.tIra,'#FCD34D'],
+    ['HSA',s.hsa+(s.hasP?s.pHSA:0),'#FFE066'],['Brokerage',s.brok+(s.hasP?s.pBrok:0),'#4ADE80'],
+    ['Home Value',s.homeVal,'#2DD4BF'],['Cash',s.cash,'#818CF8']].filter(x=>x[1]>0)
+    .map(([n,v,c])=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)"><div style="width:10px;height:10px;border-radius:3px;background:${c};flex-shrink:0"></div><span style="font-size:0.8rem;flex:1;color:var(--text-muted)">${n}</span><span style="font-size:0.83rem;font-weight:600">${fmt(v)}</span></div>`).join('');
+}
+
+function renderCharts(){
+  const s=state;
+  const gc=darkMode?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)';
+  const tc=darkMode?'#8A8580':'#6B6560';
+  if(projChart){projChart.destroy();projChart=null;}
+  if(allocChart){allocChart.destroy();allocChart=null;}
+  const pc=document.getElementById('projChart');
+  if(pc){
+    const g=pc.getContext('2d').createLinearGradient(0,0,0,250);
+    g.addColorStop(0,'rgba(255,107,43,0.26)'); g.addColorStop(1,'rgba(255,107,43,0)');
+    projChart=new Chart(pc,{type:'line',data:{labels:s.pl,datasets:[
+      {label:'Portfolio',data:s.pd,borderColor:'#FF6B2B',backgroundColor:g,borderWidth:2.5,fill:true,tension:0.4,pointRadius:0,pointHoverRadius:4},
+      {label:'FIRE Number',data:s.pl.map(()=>s.fireNum),borderColor:'#4ADE80',borderWidth:1.5,borderDash:[5,4],fill:false,tension:0,pointRadius:0}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:tc,font:{family:'DM Sans',size:11}}},
+        tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}},
+        zoom:{
+          pan:{ enabled:true, mode:'x' },
+          zoom:{ wheel:{ enabled:true }, pinch:{ enabled:true }, mode:'x' }
+        }
+      },
+      scales:{x:{grid:{color:gc},ticks:{color:tc,maxTicksLimit:10,font:{family:'DM Sans',size:11}}},
+        y:{grid:{color:gc},ticks:{color:tc,font:{family:'DM Sans',size:11},callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1000).toFixed(0)+'K')}}}}});
+  }
+  const ac=document.getElementById('allocChart');
+  if(ac){
+    const items=[s.k401,s.roth401k,s.p401,s.roth+s.pRoth,s.tIra,s.hsa+(s.hasP?s.pHSA:0),s.brok+(s.hasP?s.pBrok:0),s.homeVal,s.cash];
+    const labels=['Trad. 401k','Roth 401k','Partner 401k','Roth IRA','Trad. IRA','HSA','Brokerage','Home Value','Cash'];
+    const colors=['#FF6B2B','#FF8C42','#A78BFA','#FFB347','#FCD34D','#FFE066','#4ADE80','#2DD4BF','#818CF8'];
+    const f=items.map((v,i)=>({v,l:labels[i],c:colors[i]})).filter(x=>x.v>0);
+    allocChart=new Chart(ac,{type:'doughnut',data:{labels:f.map(x=>x.l),datasets:[{data:f.map(x=>x.v),backgroundColor:f.map(x=>x.c),borderWidth:0,hoverOffset:5}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}}}});
+  }
+}
+
+// ── WHAT-IF ──
+function renderWhatIf(){
+  document.getElementById('whatifContent').innerHTML=`
+    <div class="section-heading">What-If Scenarios</div>
+    <div class="section-sub">Move the sliders to see how small changes compound into years of freedom.</div>
+    <div class="wi-card">
+      <div class="card-title" style="margin-bottom:6px"><span class="dot"></span> Reduce Monthly Spending</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:9px">Every $100/mo cut: reduces FIRE Number by $30,000 AND adds to annual savings.</div>
+      <div class="slider-group"><div class="slider-header"><label>Monthly reduction</label><div class="slider-val" id="expRedVal">$500/mo</div></div>
+        <input type="range" id="expReduction" min="0" max="3000" value="500" step="100" oninput="document.getElementById('expRedVal').textContent='$'+this.value+'/mo';updateWI()"></div>
+      <div class="wi-result" id="expResult"></div>
+    </div>
+    <div class="wi-card">
+      <div class="card-title" style="margin-bottom:6px"><span class="dot"></span> Increase Annual Savings</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:9px">Side hustle, raise, bonus — what if you invested it all?</div>
+      <div class="slider-group"><div class="slider-header"><label>Additional annual savings</label><div class="slider-val" id="savIncVal">$5,000/yr</div></div>
+        <input type="range" id="savIncrease" min="0" max="50000" value="5000" step="1000" oninput="document.getElementById('savIncVal').textContent='$'+Number(this.value).toLocaleString()+'/yr';updateWI()"></div>
+      <div class="wi-result" id="savResult"></div>
+    </div>
+    <div class="wi-card">
+      <div class="card-title" style="margin-bottom:6px"><span class="dot"></span> One-Time Windfall</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:9px">Bonus, RSU vest, inheritance, tax refund — invested today.</div>
+      <div class="slider-group"><div class="slider-header"><label>Lump sum invested now</label><div class="slider-val" id="wfVal">$25,000</div></div>
+        <input type="range" id="windfall" min="0" max="250000" value="25000" step="5000" oninput="document.getElementById('wfVal').textContent='$'+Number(this.value).toLocaleString();updateWI()"></div>
+      <div class="wi-result" id="wfResult"></div>
+    </div>
+    <div class="wi-card">
+      <div class="card-title" style="margin-bottom:6px"><span class="dot"></span> One More Year (OMY) Syndrome</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px">The FIRE community's most common trap — how much does one extra year really buy you?</div>
+      <div id="omyResult"></div>
+    </div>`;
+  updateWI();
+}
+
+function calcFY(inv,sav,fn,rr){
+  let p=inv;
+  for(let y=0;y<=60;y++){ if(p>=fn) return y; p=p*(1+rr)+sav; }
+  return null;
+}
+
+function updateWI(){
+  const s=state; if(!s.fireNum) return;
+  const base=calcFY(s.totalInv,s.totalC,s.fireNum,s.rr);
+  const er=parseFloat(document.getElementById('expReduction').value)*12;
+  const newFN=Math.max(0,s.adjExp-er)/s.swr;
+  const eY=calcFY(s.totalInv,s.totalC+er,newFN,s.rr);
+  document.getElementById('expResult').innerHTML=wiR(base,eY,s.age,'New FIRE #: '+fmt(newFN));
+  const si=parseFloat(document.getElementById('savIncrease').value);
+  const sY=calcFY(s.totalInv,s.totalC+si,s.fireNum,s.rr);
+  document.getElementById('savResult').innerHTML=wiR(base,sY,s.age,fmt(si)+'/yr extra');
+  const wf=parseFloat(document.getElementById('windfall').value);
+  const wY=calcFY(s.totalInv+wf,s.totalC,s.fireNum,s.rr);
+  document.getElementById('wfResult').innerHTML=wiR(base,wY,s.age,fmt(wf)+' lump sum');
+  const omyY=calcFY(s.totalInv+s.totalC+s.totalInv*s.rr,s.totalC,s.fireNum,s.rr);
+  const omyDiff=base!==null&&omyY!==null?base-omyY-1:null;
+  document.getElementById('omyResult').innerHTML=`
+    <div class="grid-3" style="gap:10px;margin-bottom:10px">
+      <div><div class="h-stat-label">Current FIRE age</div><div class="h-stat-val o">${base!==null?'Age '+(s.age+base):'n/a'}</div></div>
+      <div><div class="h-stat-label">After 1 extra year</div><div class="h-stat-val g">${omyY!==null?'Age '+(s.age+1+omyY):'n/a'}</div></div>
+      <div><div class="h-stat-label">Retirement yrs gained</div><div class="h-stat-val t">${omyDiff!==null&&omyDiff>0?omyDiff+' yrs':'< 1 yr'}</div></div>
+    </div>
+    <div class="itip"><span class="e">⚠️</span>If you're within 10% of your FIRE number, the safety margin from one more year often isn't worth the cost. Consider a flexible spending plan instead.</div>`;
+}
+
+function wiR(base,years,age,desc){
+  if(years===null) return `<div style="color:var(--text-muted);font-size:0.83rem">Beyond 60-yr projection</div>`;
+  const diff=base!==null?base-years:0;
+  const col=diff>0?'var(--green)':diff<0?'var(--ember)':'var(--text-muted)';
+  return `<div class="wi-arrow">${diff>0?'⬆':diff<0?'⬇':'→'}</div>
+    <div><div class="wi-change" style="color:${col}">${diff>0?'-'+diff+' yrs':diff<0?'+'+Math.abs(diff)+' yrs':'Same'}</div>
+    <div style="font-size:0.77rem;color:var(--text-muted);margin-top:2px">FIRE at age ${age+years} · ${desc}</div></div>`;
+}
+
+// ── TIPS ──
+const tipsData=[
+  {a:'JL Collins',t:'The Simple Path to Wealth: Own a total market index fund (VTSAX or equivalent), avoid debt, and let compounding do the heavy lifting. Complexity is the enemy of wealth.',tag:'Investing',i:'📚'},
+  {a:'Vicki Robin',t:'Your Money or Your Life: Track every dollar earned and spent. Ask yourself — did the fulfillment I got from spending this match the life energy it cost me?',tag:'Mindset',i:'⚡'},
+  {a:'Mr. Money Mustache',t:'A 50% savings rate means financial independence in 17 years from zero. Each 10% increase shaves years off your timeline. Frugality is freedom, not deprivation.',tag:'Savings Rate',i:'🔨'},
+  {a:'Ramit Sethi',t:'Automate your finances. Set up automatic transfers to investment accounts on payday — pay yourself first before you can spend it. Make the right behavior effortless.',tag:'Automation',i:'🤖'},
+  {a:'Morgan Housel',t:'The Psychology of Money: The most important financial skill isn\'t picking stocks — it\'s controlling your behavior when markets are fearful or greedy. Time in market beats timing the market.',tag:'Behavior',i:'🧠'},
+  {a:'HSA Triple Play',t:'The HSA is the only account with triple tax advantage: pre-tax in, tax-free growth, tax-free out for medical. Save all receipts — you can reimburse yourself years later with zero time limit. After 65, spend on anything.',tag:'Tax Strategy',i:'🏥'},
+  {a:'Roth Conversion Ladder',t:'Early retirees convert traditional IRA funds to Roth over 5-year windows. After 5 years, converted principal is penalty-free — a bridge to 59½ without the 10% early withdrawal penalty.',tag:'FIRE Strategy',i:'🪜'},
+  {a:'Sequence of Returns Risk',t:'The biggest threat to early retirees isn\'t average returns — it\'s poor returns in the first 5 years of retirement. Guard against this with a 1–2 year cash buffer and a flexible spending strategy.',tag:'Risk Management',i:'⚠️'},
+  {a:'William Bernstein',t:'If you can save 15%+ of income, invest in low-cost index funds, and stay the course through downturns — you have almost certainly won the investing game.',tag:'Investing',i:'🏛️'},
+  {a:'Warren Buffett',t:'The best investment you can make is in yourself. Every dollar spent on skills, health, and relationships has compounding returns no index fund can match.',tag:'Mindset',i:'💎'},
+  {a:'The 4% Rule',t:'William Bengen (1994) found withdrawing 4% in year one, then adjusting for inflation, survived every historical 30-year period including the Great Depression. For 40+ year retirements, consider 3–3.5%.',tag:'FIRE History',i:'🔥'},
+  {a:'Barista FIRE Healthcare',t:'Many early retirees work 20–25 hrs/week specifically for employer health benefits. Starbucks offers benefits to part-time workers — bridging the gap to Medicare at 65, often the hardest FIRE planning challenge.',tag:'Healthcare',i:'☕'},
+];
+function renderTips(){
+  document.getElementById('tipsContent').innerHTML=tipsData.map(t=>`<div class="tip-card"><div class="tip-author">${t.i} ${t.a}</div><div class="tip-text">"${t.t}"</div><span class="tip-tag">${t.tag}</span></div>`).join('');
+}
+
+// ── EXPORT ──
+function exportPDF(){ window.print(); }
+
+// ── LOCALSTORAGE KEYS ──
+const LS_INPUTS = 'firetrack_inputs_v1';
+const LS_HISTORY = 'firetrack_history_v1';
+
+// Fields to save/restore
+const INPUT_IDS = [
+  'age','retireAge','dependents','filingStatus',
+  'salary','bonus','rsus','sideIncome',
+  'partnerAge','partnerRetireAge','partnerSalary','partnerBonus','partnerRSUs','partnerSideIncome',
+  'partner401k','partner401kContrib','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
+  'expenses','emergencyMonths',
+  'k401','roth401k','k401Contrib','rothIra','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
+  'homeEquity','cash','college','pension',
+  'mortgage','mortgageRate','studentLoans','studentLoanRate','carLoan','ccDebt','monthlyDebtPayments',
+  'returnRate','swr','socialSecurity','retireTaxRate'
+];
+
+function saveInputs() {
+  const data = {};
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  });
+  data._partnerOpen = pOn();
+  // Save active FIRE type
+  const activeFT = document.querySelector('.ft-btn.active');
+  data._fireType = activeFT ? activeFT.dataset.ft : 'regular';
+  try { localStorage.setItem(LS_INPUTS, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadInputs() {
+  let data;
+  try { data = JSON.parse(localStorage.getItem(LS_INPUTS)); } catch(e) {}
+  if (!data) return;
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id] !== undefined) el.value = data[id];
+  });
+  // Restore partner toggle
+  if (data._partnerOpen) {
+    document.getElementById('partnerToggle').classList.add('on');
+    document.getElementById('partnerSection').classList.add('open');
+  }
+  // Restore FIRE type
+  if (data._fireType) {
+    document.querySelectorAll('.ft-btn').forEach(b => b.classList.remove('active'));
+    const ftEl = document.querySelector(`.ft-btn[data-ft="${data._fireType}"]`);
+    if (ftEl) ftEl.classList.add('active');
+  }
+  // Sync slider display
+  const rr = document.getElementById('returnRate');
+  if (rr) document.getElementById('returnVal').textContent = rr.value + '%';
+}
+
+// ── HISTORY SNAPSHOTS ──
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(LS_HISTORY)) || []; } catch(e) { return []; }
+}
+function saveHistory(snapshots) {
+  try { localStorage.setItem(LS_HISTORY, JSON.stringify(snapshots)); } catch(e) {}
+}
+function addSnapshot(s) {
+  const snapshots = loadHistory();
+  const now = new Date();
+  const label = now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  // Avoid duplicate same-day entries — update instead of append
+  const today = now.toDateString();
+  const existing = snapshots.findIndex(snap => new Date(snap.ts).toDateString() === today);
+  const snap = {
+    ts: now.toISOString(),
+    label,
+    netWorth: Math.round(s.netWorth),
+    investable: Math.round(s.totalInv),
+    fireNum: Math.round(s.fireNum),
+    progress: Math.round(s.progress * 100),
+    savRate: Math.round(s.savRate * 100),
+    fireAge: s.fireYear !== null ? s.age + s.fireYear : null,
+  };
+  if (existing >= 0) snapshots[existing] = snap;
+  else snapshots.push(snap);
+  // Keep last 60 snapshots
+  if (snapshots.length > 60) snapshots.splice(0, snapshots.length - 60);
+  saveHistory(snapshots);
+}
+function deleteSnapshot(index) {
+  const snapshots = loadHistory();
+  snapshots.splice(index, 1);
+  saveHistory(snapshots);
+  renderHistory();
+}
+function clearHistory() {
+  if (confirm('Clear all history snapshots? This cannot be undone.')) {
+    saveHistory([]);
+    renderHistory();
+  }
+}
+
+// ── HISTORY RENDER ──
+let histNWChart = null, histProgChart = null;
+
+function renderHistory() {
+  const snapshots = loadHistory();
+  const el = document.getElementById('historyContent');
+  if (!el) return;
+
+  if (snapshots.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="ei">📊</div>
+      <p>No snapshots yet. Hit <strong>Calculate</strong> to record your first data point!</p>
+      <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button></div>`;
+    return;
+  }
+
+  const gc = darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const tc = darkMode ? '#8A8580' : '#6B6560';
+  const labels = snapshots.map(s => s.label);
+  const nwData = snapshots.map(s => s.netWorth);
+  const invData = snapshots.map(s => s.investable);
+  const progData = snapshots.map(s => s.progress);
+
+  const first = snapshots[0], last = snapshots[snapshots.length-1];
+  const nwDelta = last.netWorth - first.netWorth;
+  const progDelta = last.progress - first.progress;
+  const sign = n => n >= 0 ? '+' : '';
+
+  el.innerHTML = `
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Snapshots Recorded</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--fire-orange)">${snapshots.length}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">since ${first.label}</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> Net Worth Change</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.6rem;color:${nwDelta>=0?'var(--green)':'var(--ember)'}">${sign(nwDelta)}${fmt(nwDelta)}</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">across all snapshots</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span> FIRE Progress Change</div>
+        <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.6rem;color:${progDelta>=0?'var(--green)':'var(--ember)'}">${sign(progDelta)}${progDelta}%</div>
+        <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">toward FIRE number</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot"></span> Net Worth & Investable Assets Over Time</div>
+      <div class="hist-chart-wrap"><canvas id="histNWChart"></canvas></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot"></span> FIRE Progress % Over Time</div>
+      <div class="hist-chart-wrap" style="height:180px"><canvas id="histProgChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:7px"><span class="dot"></span> Snapshot Log</div>
+        <button class="hist-clear-btn" onclick="clearHistory()">🗑 Clear all</button>
+      </div>
+      ${snapshots.slice().reverse().map((snap, i) => {
+        const realIdx = snapshots.length - 1 - i;
+        return `<div class="hist-snapshot">
+          <div class="hist-date">📅 ${snap.label}</div>
+          <div class="hist-stats">
+            <div class="hist-stat"><div class="hist-stat-label">Net Worth</div><div class="hist-stat-val" style="color:var(--green)">${fmt(snap.netWorth)}</div></div>
+            <div class="hist-stat"><div class="hist-stat-label">Investable</div><div class="hist-stat-val" style="color:var(--fire-orange)">${fmt(snap.investable)}</div></div>
+            <div class="hist-stat"><div class="hist-stat-label">FIRE %</div><div class="hist-stat-val" style="color:var(--teal)">${snap.progress}%</div></div>
+            <div class="hist-stat"><div class="hist-stat-label">Savings Rate</div><div class="hist-stat-val">${snap.savRate}%</div></div>
+            ${snap.fireAge ? `<div class="hist-stat"><div class="hist-stat-label">FIRE Age</div><div class="hist-stat-val">${snap.fireAge}</div></div>` : ''}
+          </div>
+          <button class="hist-del" onclick="deleteSnapshot(${realIdx})" title="Remove">✕</button>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="itip" style="margin-top:12px"><span class="e">💡</span>Snapshots update once per day when you recalculate. Come back monthly to track your FIRE journey over time!</div>
+  `;
+
+  setTimeout(() => {
+    if (histNWChart) { histNWChart.destroy(); histNWChart = null; }
+    if (histProgChart) { histProgChart.destroy(); histProgChart = null; }
+
+    const nwEl = document.getElementById('histNWChart');
+    if (nwEl && snapshots.length > 0) {
+      const g1 = nwEl.getContext('2d').createLinearGradient(0,0,0,240);
+      g1.addColorStop(0,'rgba(74,222,128,0.22)'); g1.addColorStop(1,'rgba(74,222,128,0)');
+      const g2 = nwEl.getContext('2d').createLinearGradient(0,0,0,240);
+      g2.addColorStop(0,'rgba(255,107,43,0.18)'); g2.addColorStop(1,'rgba(255,107,43,0)');
+      histNWChart = new Chart(nwEl, {
+        type:'line',
+        data:{ labels, datasets:[
+          { label:'Net Worth', data:nwData, borderColor:'#4ADE80', backgroundColor:g1, borderWidth:2.5, fill:true, tension:0.4, pointRadius:snapshots.length===1?5:3, pointBackgroundColor:'#4ADE80' },
+          { label:'Investable Assets', data:invData, borderColor:'#FF6B2B', backgroundColor:g2, borderWidth:2, fill:true, tension:0.4, pointRadius:snapshots.length===1?5:3, pointBackgroundColor:'#FF6B2B' },
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:tc, font:{family:'DM Sans',size:11} } }, tooltip:{ callbacks:{ label:c=>' '+fmt(c.raw) } } },
+          scales:{
+            x:{ grid:{color:gc}, ticks:{ color:tc, font:{family:'DM Sans',size:10}, maxTicksLimit:8 } },
+            y:{ grid:{color:gc}, ticks:{ color:tc, font:{family:'DM Sans',size:11}, callback: v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1000).toFixed(0)+'K') } }
+          }
+        }
+      });
+    }
+
+    const pgEl = document.getElementById('histProgChart');
+    if (pgEl && snapshots.length > 0) {
+      const g3 = pgEl.getContext('2d').createLinearGradient(0,0,0,180);
+      g3.addColorStop(0,'rgba(45,212,191,0.2)'); g3.addColorStop(1,'rgba(45,212,191,0)');
+      histProgChart = new Chart(pgEl, {
+        type:'line',
+        data:{ labels, datasets:[
+          { label:'FIRE Progress %', data:progData, borderColor:'#2DD4BF', backgroundColor:g3, borderWidth:2.5, fill:true, tension:0.4, pointRadius:snapshots.length===1?5:3, pointBackgroundColor:'#2DD4BF' },
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>` ${c.raw}% of FIRE` } } },
+          scales:{
+            x:{ grid:{color:gc}, ticks:{ color:tc, font:{family:'DM Sans',size:10}, maxTicksLimit:8 } },
+            y:{ min:0, max:100, grid:{color:gc}, ticks:{ color:tc, font:{family:'DM Sans',size:11}, callback:v=>v+'%' } }
+          }
+        }
+      });
+    }
+  }, 60);
+}
+
+// ── INIT ──
+// Add data-ft attributes to FIRE type buttons for save/restore
+document.querySelectorAll('.ft-btn').forEach(btn => {
+  const onclick = btn.getAttribute('onclick') || '';
+  const m = onclick.match(/setFT\('(\w+)'/);
+  if (m) btn.dataset.ft = m[1];
+});
+
+renderTips();
+loadInputs();
+// Only auto-calculate if user has previously saved data
+const hasSaved = (() => { try { return !!localStorage.getItem(LS_INPUTS); } catch(e) { return false; } })();
+if (hasSaved) {
+  calculate();
+  showView('dashboard');
+} else {
+  showView('input');
+}
+
+// Expose functions globally so inline onclick handlers work in sandboxed environments
+window.calculate = calculate;
+window.switchTab = switchTab;
+window.showView = showView;
+window.toggleMode = toggleMode;
+window.togglePartner = togglePartner;
+window.setFT = setFT;
+window.tt = tt;
+window.closeTT = closeTT;
+window.closeTTBtn = closeTTBtn;
+window.exportPDF = exportPDF;
+window.clearHistory = clearHistory;
+window.deleteSnapshot = deleteSnapshot;
+</script>
+<!-- DISCLAIMER -->
+<div style="max-width:1200px;margin:0 auto;padding:24px 16px 40px;border-top:1px solid var(--border);margin-top:24px">
+  <p style="font-size:0.72rem;color:var(--text-dim);line-height:1.6;text-align:center;max-width:700px;margin:0 auto">
+    <strong style="color:var(--text-muted)">Not financial advice.</strong> FIREtrack is an educational tool for illustrative purposes only. All projections are estimates based on your inputs and assumed constant returns — real markets are variable and unpredictable. This tool does not account for all tax situations, investment risks, or personal circumstances. Consult a licensed financial advisor, tax professional, or CPA before making financial decisions. All calculations run locally in your browser; no data is transmitted or stored on any server.
+  </p>
+</div>
+
+</body>
+</html>
