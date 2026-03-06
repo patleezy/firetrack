@@ -684,6 +684,11 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIra" value="22000"></div>
           </div>
           <div class="form-group">
+            <div class="label-row"><label>Annual Roth IRA Contribution</label>
+            <button class="ib" onclick="tt('Annual Roth IRA Contribution','How much you contribute to your Roth IRA each year. 2024 limit: $7,000/yr ($8,000 if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever.','Tax-Free')">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIraContrib" placeholder="0"></div>
+          </div>
+          <div class="form-group">
             <div class="label-row"><label>Traditional IRA Balance</label>
             <button class="ib" onclick="tt('Traditional IRA','Pre-tax contributions; grows tax-deferred. <strong>Withdrawals taxed as ordinary income.</strong><br><br>For FIRE, Traditional IRAs are often source accounts for <strong>Roth Conversion Ladders</strong> — converting funds to Roth over time in low-income early retirement years, dramatically reducing lifetime taxes.','Tax-Deferred')">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="tradIra" placeholder="0"></div>
@@ -729,8 +734,8 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="college" placeholder="0"></div>
           </div>
           <div class="form-group">
-            <div class="label-row"><label>Pension / Annuity / Other</label>
-            <button class="ib" onclick="tt('Pension / Annuity / Other','Defined benefit pension plans, annuities, business equity, or other assets not listed above. Enter the current estimated lump-sum value.<br><br>A pension providing $2,000/month in income is equivalent to having $600,000 invested at 4% SWR — pensions are often undervalued in FIRE planning.','Other Assets')">i</button></div>
+            <div class="label-row"><label>Pension / Annuity Income</label>
+            <button class="ib" onclick="tt('Pension / Annuity Annual Income','Enter the <strong>annual income</strong> your pension or annuity will pay in retirement — not a lump-sum balance.<br><br>Like Social Security, this income directly reduces how much your portfolio needs to generate, lowering your FIRE Number.<br><br><strong>Example:</strong> A pension paying $24,000/yr at 4% SWR is equivalent to having $600,000 invested — pensions are often undervalued in FIRE planning.<br><br>If you have a lump-sum option instead of income, enter it as a brokerage balance above.','Other Income')">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="pension" placeholder="0"></div>
           </div>
         </div>
@@ -809,8 +814,13 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>Your Social Security Estimate</label>
-            <button class="ib" onclick="tt('Social Security Estimate','Your estimated annual SS benefit at full retirement age (67 for those born after 1960). Find your personalized estimate at <strong>ssa.gov/myaccount</strong>.<br><br><strong>FIRE impact:</strong> SS directly reduces how much you need invested. Each $1,000/month in SS = ~$300,000 less in your FIRE number at 4% SWR.<br><br>Early retirees often use a conservative estimate or zero (since reduced early claiming or a long gap may apply).','Social Security')">i</button></div>
+            <button class="ib" onclick="tt('Social Security Estimate','Your estimated annual SS benefit at full retirement age (67 for those born after 1960). Find your personalized estimate at <strong>ssa.gov/myaccount</strong>.<br><br><strong>FIRE impact:</strong> SS directly reduces how much you need invested. Each $1,000/month in SS = ~$300,000 less in your FIRE number at 4% SWR.<br><br>Early retirees often use a conservative estimate or zero (since a long gap to 67 may apply).','Social Security')">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="socialSecurity" value="18000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Your SS Start Age</label>
+            <button class="ib" onclick="tt('Social Security Start Age','The age at which you plan to begin collecting Social Security.<br><br><strong>Full retirement age:</strong> 67 (born after 1960)<br><strong>Early claiming:</strong> Age 62 — reduces benefit by ~30%<br><strong>Delayed:</strong> Age 70 — increases benefit by 8%/yr past FRA<br><br><strong>FIRE gap warning:</strong> If you retire at 45 but SS starts at 67, your portfolio must fully fund <em>all</em> expenses for 22 years with no SS offset. FIREtrack adds this gap cost to your FIRE Number automatically.','Social Security')">i</button></div>
+            <input type="number" id="ssStartAge" value="67" min="62" max="70">
           </div>
           <div class="form-group">
             <div class="label-row"><label>Est. Retirement Tax Rate</label>
@@ -892,18 +902,19 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   <button class="mn-btn" onclick="switchTab(this,'history')" data-view="history"><span class="ni">📊</span><span>History</span></button>
 </nav>
 
-<!-- DISCLAIMER FOOTER -->
-<footer style="padding:20px 16px 110px;border-top:1px solid var(--border);margin-top:16px">
-  <p style="font-size:0.72rem;color:var(--text-dim);line-height:1.7;text-align:center;max-width:800px;margin:0 auto">
-    <strong style="color:var(--text-muted)">📋 Educational use only — not financial advice.</strong><br>
-    FIREtrack is a personal planning tool. All projections use real (inflation-adjusted) returns and are illustrative — actual results will vary based on market conditions, tax law changes, and individual circumstances. Consult a licensed financial advisor, CPA, or tax professional before making investment, retirement, or tax decisions. 
-    <strong style="color:var(--text-muted)">Your data never leaves your browser.</strong> Nothing is transmitted to any server.
+<!-- PERSISTENT FOOTER -->
+<footer style="padding:14px 20px 100px;border-top:1px solid var(--border);margin-top:8px">
+  <p style="font-size:0.7rem;color:var(--text-dim);line-height:1.6;text-align:center;max-width:860px;margin:0 auto">
+    <strong style="color:var(--text-muted)">📋 For educational &amp; planning purposes only — not financial advice.</strong>
+    FIREtrack uses simplified models with constant returns, no market volatility, and approximate tax estimates. Real outcomes will differ. Consult a licensed financial advisor, CPA, or tax professional before making retirement or investment decisions.
+    <strong style="color:var(--text-dim)">Your data never leaves your browser.</strong>
   </p>
 </footer>
 <script>
 // ── STATE ──
 let darkMode = true, partnerOn = false, calculated = false, state = {};
 let projChart = null, allocChart = null;
+let disclaimerDismissed = false;
 
 // ── TOOLTIP ──
 function tt(title, body, tag) {
@@ -970,15 +981,21 @@ function calculate() {
   const pSalary=hasP?gv('partnerSalary'):0, pBonus=hasP?gv('partnerBonus'):0, pRSUs=hasP?gv('partnerRSUs'):0, pSide=hasP?gv('partnerSideIncome'):0;
   const youInc = salary+bonus+rsus+side, partInc = pSalary+pBonus+pRSUs+pSide, totalInc = youInc+partInc;
 
-  const expenses=gv('expenses'), swr=gv('swr')/100, ss=gv('socialSecurity'), pSS=hasP?gv('partnerSS'):0, totalSS=ss+pSS;
+  const expenses=gv('expenses'), swr=gv('swr')/100;
+  const ss=gv('socialSecurity'), ssStartAge=Math.max(gv('ssStartAge')||67, retireAge);
+  const pSS=hasP?gv('partnerSS'):0;
+  const totalSS=ss+pSS;
   const retireTaxRate = gv('retireTaxRate')/100;
 
   // Account balances — separate Roth vs Traditional
-  const k401=gv('k401'), roth401k=gv('roth401k');         // Traditional vs Roth 401k
-  const roth=gv('rothIra'), tIra=gv('tradIra');            // Roth vs Traditional IRA
+  const k401=gv('k401'), roth401k=gv('roth401k');
+  const roth=gv('rothIra'), tIra=gv('tradIra');
   const hsa=gv('hsa'), brok=gv('brokerage'), cash=gv('cash');
-  const homeVal=gv('homeEquity'), pens=gv('pension'), col=gv('college');
+  const homeVal=gv('homeEquity');
+  const pensionIncome=gv('pension');   // Now annual income, not lump sum
+  const col=gv('college');
   const k401c=gv('k401Contrib'), hsac=gv('hsaContrib'), brokc=gv('brokerageContrib');
+  const rothIraContrib=gv('rothIraContrib');
 
   const p401=hasP?gv('partner401k'):0, p401c=hasP?gv('partner401kContrib'):0;
   const pRoth=hasP?gv('partnerRothIra'):0, pHSA=hasP?gv('partnerHSA'):0, pBrok=hasP?gv('partnerBrokerage'):0;
@@ -987,10 +1004,10 @@ function calculate() {
   const rr = gv('returnRate')/100;
   const em = gv('emergencyMonths'), efund = (expenses/12)*em;
 
-  // Home equity = market value − mortgage (fixed double-count bug)
+  // Home equity = market value − mortgage
   const homeEq = Math.max(0, homeVal - mortgage);
 
-  // Pre-tax (taxable on withdrawal) vs tax-free accounts
+  // Tax bucket classification
   const preTaxYou = k401 + tIra;
   const taxFreeYou = roth401k + roth + hsa;
   const taxableYou = brok;
@@ -1001,34 +1018,52 @@ function calculate() {
   const totalTaxFree = taxFreeYou + taxFreePart;
   const totalTaxable = taxableYou + taxablePart;
 
-  const youAssets = k401+roth401k+roth+tIra+hsa+brok+cash+homeVal+pens+col;
+  // Assets: pension is now income, NOT added to asset totals
+  const youAssets = k401+roth401k+roth+tIra+hsa+brok+cash+homeVal+col;
   const partAssets = p401+pRoth+pHSA+pBrok;
   const totalAssets = youAssets + partAssets;
   const totalDebts = mortgage + stuLoans + carL + ccD;
-  const netWorth = totalAssets - totalDebts;   // homeVal - mortgage = equity, correct
+  const netWorth = totalAssets - totalDebts;
 
-  const youInv = k401+roth401k+roth+tIra+hsa+brok+Math.max(0,cash-efund)+pens;
+  // Investable: pension removed (it's income now), home/529/emergency cash excluded
+  const youInv = k401+roth401k+roth+tIra+hsa+brok+Math.max(0,cash-efund);
   const partInv = p401+pRoth+pHSA+pBrok;
   const totalInv = youInv + partInv;
 
-  const adjExp = Math.max(0, expenses - totalSS);
-  const fireNum = swr > 0 && adjExp > 0 ? adjExp / swr : 0;
-  const youC = k401c+hsac+brokc, partC = p401c, totalC = youC+partC;
+  // Total annual guaranteed income in retirement (SS + pension)
+  const totalGuaranteedIncome = totalSS + pensionIncome;
+
+  // Expenses net of guaranteed income (post SS+pension start)
+  const adjExp = Math.max(0, expenses - totalGuaranteedIncome);
+
+  // SS gap: years between FIRE date and SS start age where portfolio must cover full expenses
+  const ssGapYears = Math.max(0, ssStartAge - retireAge);
+  // Extra annual cost during gap = the SS+pension income you won't yet have
+  // Use annuity PV formula: PV = C * (1 - (1+r)^-n) / r
+  const ssGapSurcharge = (totalGuaranteedIncome > 0 && ssGapYears > 0 && rr > 0)
+    ? totalGuaranteedIncome * (1 - Math.pow(1+rr, -ssGapYears)) / rr
+    : totalGuaranteedIncome * ssGapYears; // fallback if rr=0
+
+  // FIRE Number = steady-state portfolio need + present value of SS/pension gap
+  const fireNum = swr > 0 && (adjExp > 0 || ssGapSurcharge > 0)
+    ? adjExp / swr + ssGapSurcharge
+    : 0;
+
+  // Savings rate now includes Roth IRA contributions
+  const youC = k401c + hsac + brokc + rothIraContrib, partC = p401c, totalC = youC + partC;
   const savRate = totalInc>0 ? totalC/totalInc : 0;
   const progress = fireNum > 0 ? Math.min(1, totalInv / fireNum) : 0;
   const coastNum = fireNum > 0 ? fireNum / Math.pow(1+rr, ytf) : 0;
   const isCoast = coastNum > 0 && totalInv >= coastNum;
 
-  // Tax-adjusted gross withdrawal needed from pre-tax accounts
-  // Roth and HSA (medical) withdrawals are tax-free; pre-tax and brokerage are taxed
+  // Tax-adjusted gross withdrawal
   const preTaxPct = totalInv > 0 ? totalPreTax/totalInv : 0;
-  const taxablePct = totalInv > 0 ? totalTaxable/totalInv : 0;
-  // Blended effective rate on the taxable portion of withdrawals
-  const blendedTaxRate = (preTaxPct + taxablePct * 0.5) * retireTaxRate; // brokerage ~half rate (cap gains)
+  const taxablePct2 = totalInv > 0 ? totalTaxable/totalInv : 0;
+  const blendedTaxRate = (preTaxPct + taxablePct2 * 0.5) * retireTaxRate;
   const grossWithdrawal = adjExp > 0 ? adjExp / (1 - blendedTaxRate) : 0;
   const taxDrag = Math.max(0, grossWithdrawal - adjExp);
 
-  // Projection — CORRECT: stop contributions at FIRE, start withdrawals
+  // Projection: accumulate → FIRE → drawdown with SS gap awareness
   let portfolio = totalInv, fireYear = null;
   const pd=[], pl=[];
   for(let y=0;y<=60;y++){
@@ -1037,19 +1072,24 @@ function calculate() {
     if(portfolio >= fireNum && fireYear === null) fireYear = y;
     const retired = fireYear !== null && y >= fireYear;
     if(retired) {
-      portfolio = Math.max(0, portfolio*(1+rr) - adjExp);
+      const currentAge = age + y;
+      const ssActive = currentAge >= ssStartAge;
+      // Before SS/pension kicks in: withdraw full expenses; after: withdraw adjExp
+      const withdrawal = ssActive ? adjExp : Math.max(0, expenses - pensionIncome);
+      portfolio = Math.max(0, portfolio*(1+rr) - withdrawal);
     } else {
       portfolio = portfolio*(1+rr) + totalC;
     }
   }
 
   state = { age,retireAge,ytf,hasP,youInc,partInc,totalInc,expenses,swr,
-    k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pens,col,p401,pRoth,pHSA,pBrok,
+    k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pensionIncome,col,p401,pRoth,pHSA,pBrok,
     totalAssets,totalDebts,netWorth,totalInv,youInv,partInv,youAssets,partAssets,
     fireNum,adjExp,savRate,totalC,youC,partC,progress,pd,pl,fireYear,
-    coastNum,isCoast,rr,ss,pSS,totalSS,k401c,hsac,brokc,p401c,
-    mortgage,stuLoans,carL,ccD, mortgageRate:gv('mortgageRate'),efund,
-    totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate };
+    coastNum,isCoast,rr,ss,pSS,totalSS,totalGuaranteedIncome,k401c,hsac,brokc,p401c,rothIraContrib,
+    mortgage,stuLoans,carL,ccD,mortgageRate:gv('mortgageRate'),efund,
+    totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate,
+    ssGapYears,ssGapSurcharge,ssStartAge };
 
   calculated = true;
   saveInputs();
@@ -1075,12 +1115,23 @@ function renderDash(){
   const taxablePct = 100 - preTaxPct - taxFreePct;
 
   document.getElementById('dashContent').innerHTML=`
+
+    ${!disclaimerDismissed ? `<div id="disclaimerBanner" style="display:flex;align-items:flex-start;gap:11px;padding:12px 14px;background:rgba(255,179,71,0.07);border:1px solid rgba(255,179,71,0.22);border-radius:12px;margin-bottom:16px">
+      <span style="font-size:1rem;flex-shrink:0;margin-top:1px">⚠️</span>
+      <div style="font-size:0.76rem;color:var(--text-muted);line-height:1.5;flex:1">
+        <strong style="color:var(--fire-amber)">For guidance &amp; planning purposes only.</strong>
+        Projections use constant returns with no market volatility — real outcomes will differ. Taxes are estimated, not optimized. Always consult a licensed financial advisor or CPA before making retirement decisions.
+      </div>
+      <button onclick="dismissDisclaimer()" style="background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;padding:0 0 0 8px;line-height:1;flex-shrink:0" title="Dismiss">✕</button>
+    </div>` : ''}
+
     <div class="hero" id="heroCard">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:18px">
         <div style="flex:1;min-width:180px">
           <div class="hero-label">🎯 Your FIRE Number</div>
           <div class="hero-amount">${fmt(s.fireNum)}</div>
-          <div class="hero-sub">${s.swr*100}% SWR · ${fmt(s.expenses)}/yr expenses${s.totalSS>0?' · '+fmt(s.totalSS)+'/yr SS offset':''} · all in today's dollars</div>
+          <div class="hero-sub">${s.swr*100}% SWR · ${fmt(s.expenses)}/yr expenses${s.totalGuaranteedIncome>0?' · '+fmt(s.totalGuaranteedIncome)+'/yr income offset':''} · all in today's dollars</div>
+          ${s.ssGapYears > 0 ? `<div style="display:flex;align-items:center;gap:7px;margin-top:8px;padding:7px 11px;background:rgba(255,107,43,0.08);border:1px solid rgba(255,107,43,0.2);border-radius:8px;font-size:0.75rem;color:var(--fire-amber)">⏳ <strong>SS gap:</strong> ${s.ssGapYears} yrs before SS/pension starts (age ${s.ssStartAge}) — adds ${fmt(s.ssGapSurcharge)} to FIRE Number</div>` : ''}
           <div class="milestones">${ms.map(m=>`<div class="badge ${m.e?'earned':'locked'}">${m.e?'✓':'○'} ${m.l}</div>`).join('')}</div>
         </div>
         <div style="text-align:center;flex-shrink:0">
@@ -1147,6 +1198,7 @@ function renderDash(){
           <span class="stat-row-label" style="font-weight:600">Net Worth</span>
           <span class="stat-row-val" style="color:var(--green)">${fmt(s.netWorth)}</span>
         </div>
+        ${s.pensionIncome>0?`<div class="itip" style="margin-top:8px"><span class="e">🏛️</span>Pension/annuity income of ${fmt(s.pensionIncome)}/yr reduces your FIRE Number — treated as guaranteed income, not a liquid asset.</div>`:''}
       </div>
       <div class="card">
         <div class="card-title"><span class="dot"></span> Financial Health</div>
@@ -1167,7 +1219,10 @@ function renderDash(){
     </div>
 
     <div class="card" style="margin-bottom:14px">
-      <div class="card-title"><span class="dot"></span> Tax Picture in Retirement</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0"><span class="dot"></span> Tax Picture in Retirement</div>
+        <span style="font-size:0.68rem;padding:3px 9px;background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.25);border-radius:20px;color:var(--fire-amber)">⚠️ Directional estimate — not tax advice</span>
+      </div>
       <div class="grid-3" style="gap:10px;margin-bottom:12px">
         <div><div class="h-stat-label">Pre-Tax Accounts</div>
           <div class="h-stat-val" style="font-size:1rem;color:var(--fire-amber)">${fmt(s.totalPreTax)}</div>
@@ -1188,18 +1243,18 @@ function renderDash(){
         <span>🟡 Pre-tax ${preTaxPct}%</span><span>🟢 Tax-free ${taxFreePct}%</span><span>🔵 Brokerage ${100-preTaxPct-taxFreePct}%</span>
       </div>
       ${s.adjExp>0?`<div class="stat-row">
-        <div><div class="stat-row-label">Target annual spending</div><div style="font-size:0.68rem;color:var(--text-dim)">In today's dollars</div></div>
+        <div><div class="stat-row-label">Target annual spending (net of guaranteed income)</div><div style="font-size:0.68rem;color:var(--text-dim)">In today's dollars</div></div>
         <div class="stat-row-val">${fmt(s.adjExp)}</div>
       </div>
       <div class="stat-row">
-        <div><div class="stat-row-label">Est. gross withdrawal needed</div><div style="font-size:0.68rem;color:var(--text-dim)">At ${Math.round(s.retireTaxRate*100)}% effective rate on taxable accounts</div></div>
+        <div><div class="stat-row-label">Est. gross withdrawal needed</div><div style="font-size:0.68rem;color:var(--text-dim)">Simplified blend — assumes proportional draws from all accounts</div></div>
         <div class="stat-row-val" style="color:var(--fire-amber)">${fmt(s.grossWithdrawal)}</div>
       </div>
       <div class="stat-row">
-        <div><div class="stat-row-label">Estimated annual tax drag</div><div style="font-size:0.68rem;color:var(--text-dim)">The gap you must bridge</div></div>
+        <div><div class="stat-row-label">Estimated annual tax drag</div><div style="font-size:0.68rem;color:var(--text-dim)">Actual drag depends on withdrawal sequencing & bracket management</div></div>
         <div class="stat-row-val" style="color:var(--ember)">${fmt(s.taxDrag)}</div>
       </div>`:''}
-      <div class="itip" style="margin-top:8px"><span class="e">💡</span>Roth conversion ladders in early retirement can dramatically reduce this tax drag — converting pre-tax funds during low-income years at 0–12% rates instead of higher rates later.</div>
+      <div class="itip" style="margin-top:8px"><span class="e">💡</span>This estimate assumes proportional withdrawals from all accounts. In practice, optimal sequencing (taxable → pre-tax → Roth) and Roth conversion ladders can significantly reduce real tax drag. Consult a tax advisor for a personalized withdrawal strategy.</div>
     </div>
 
     ${s.hasP?`<div class="card" style="margin-bottom:14px">
@@ -1211,9 +1266,9 @@ function renderDash(){
         <div><div class="h-stat-label">Combined Investable</div>
           <div class="h-stat-val" style="font-size:1rem;margin-bottom:5px">${fmt(s.totalInv)}</div>
           <div class="contrib-split"><span class="pill pill-y">You: ${fmt(s.youInv)}</span><span class="pill pill-p">Partner: ${fmt(s.partInv)}</span></div></div>
-        <div><div class="h-stat-label">Combined Social Security</div>
-          <div class="h-stat-val t" style="font-size:1rem;margin-bottom:5px">${fmt(s.totalSS)}</div>
-          <div class="contrib-split"><span class="pill pill-y">You: ${fmt(s.ss)}</span><span class="pill pill-p">Partner: ${fmt(s.pSS)}</span></div></div>
+        <div><div class="h-stat-label">Guaranteed Income</div>
+          <div class="h-stat-val t" style="font-size:1rem;margin-bottom:5px">${fmt(s.totalGuaranteedIncome)}</div>
+          <div class="contrib-split"><span class="pill pill-y">SS: ${fmt(s.totalSS)}</span>${s.pensionIncome?`<span class="pill" style="background:rgba(45,212,191,0.1);color:var(--teal)">Pension: ${fmt(s.pensionIncome)}</span>`:''}</div></div>
       </div></div>`:''}`;
 
   setTimeout(()=>drawGauge(s.progress),60);
@@ -1424,6 +1479,12 @@ function renderTips(){
   document.getElementById('tipsContent').innerHTML=tipsData.map(t=>`<div class="tip-card"><div class="tip-author">${t.i} ${t.a}</div><div class="tip-text">"${t.t}"</div><span class="tip-tag">${t.tag}</span></div>`).join('');
 }
 
+function dismissDisclaimer() {
+  disclaimerDismissed = true;
+  const el = document.getElementById('disclaimerBanner');
+  if (el) el.remove();
+}
+
 // ── EXPORT ──
 function exportPDF(){ window.print(); }
 
@@ -1438,10 +1499,10 @@ const INPUT_IDS = [
   'partnerAge','partnerRetireAge','partnerSalary','partnerBonus','partnerRSUs','partnerSideIncome',
   'partner401k','partner401kContrib','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
   'expenses','emergencyMonths',
-  'k401','roth401k','k401Contrib','rothIra','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
+  'k401','roth401k','k401Contrib','rothIra','rothIraContrib','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
   'homeEquity','cash','college','pension',
   'mortgage','mortgageRate','studentLoans','studentLoanRate','carLoan','ccDebt','monthlyDebtPayments',
-  'returnRate','swr','socialSecurity','retireTaxRate'
+  'returnRate','swr','socialSecurity','ssStartAge','retireTaxRate'
 ];
 
 function saveInputs() {
@@ -1683,13 +1744,8 @@ window.closeTTBtn = closeTTBtn;
 window.exportPDF = exportPDF;
 window.clearHistory = clearHistory;
 window.deleteSnapshot = deleteSnapshot;
+window.dismissDisclaimer = dismissDisclaimer;
 </script>
-<!-- DISCLAIMER -->
-<div style="max-width:1200px;margin:0 auto;padding:24px 16px 40px;border-top:1px solid var(--border);margin-top:24px">
-  <p style="font-size:0.72rem;color:var(--text-dim);line-height:1.6;text-align:center;max-width:700px;margin:0 auto">
-    <strong style="color:var(--text-muted)">Not financial advice.</strong> FIREtrack is an educational tool for illustrative purposes only. All projections are estimates based on your inputs and assumed constant returns — real markets are variable and unpredictable. This tool does not account for all tax situations, investment risks, or personal circumstances. Consult a licensed financial advisor, tax professional, or CPA before making financial decisions. All calculations run locally in your browser; no data is transmitted or stored on any server.
-  </p>
-</div>
 
 </body>
 </html>
