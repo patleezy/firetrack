@@ -23,6 +23,8 @@
 
 <!-- Favicon (SVG emoji) -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+<!-- Tell browser/OS this page manages its own dark mode -->
+<meta name="color-scheme" content="dark light">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -31,6 +33,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
 <style>
 :root {
+  color-scheme: dark;
   --fire-orange: #FF6B2B;
   --fire-amber: #FFB347;
   --ember: #FF4500;
@@ -47,6 +50,7 @@
   --partner: #A78BFA;
 }
 .light-mode {
+  color-scheme: light;
   --bg: #FAF8F4;
   --surface: #FFFFFF;
   --surface2: #F5F0E8;
@@ -229,13 +233,48 @@ input,select {
 .input-wrap.has-suffix input { padding-right:30px; }
 .input-suffix { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:0.82rem; color:var(--text-muted); pointer-events:none; }
 input:focus,select:focus { border-color:var(--fire-orange); box-shadow:0 0 0 3px rgba(255,107,43,0.12); }
-select {
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%238A8580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat; background-position:right 10px center; padding-right:28px;
-}
-select option { background:var(--surface2); }
 
-/* SLIDER */
+/* CUSTOM SELECT — fully overrides iOS native chrome */
+.select-wrap { position:relative; display:block; }
+.select-wrap select {
+  width:100%; background:var(--surface2); border:1px solid var(--border);
+  border-radius:9px; padding:10px 34px 10px 10px; color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:400;
+  -webkit-appearance:none; appearance:none;
+  outline:none; cursor:pointer; min-height:42px;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  /* Force solid background — prevents iOS transparency bleed */
+  background-clip:padding-box;
+  -webkit-text-fill-color:var(--text);
+}
+.select-wrap select:focus { border-color:var(--fire-orange); box-shadow:0 0 0 3px rgba(255,107,43,0.12); }
+.select-wrap::after {
+  content:'';
+  position:absolute; right:11px; top:50%; transform:translateY(-50%);
+  width:11px; height:7px; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%238A8580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-size:contain;
+}
+/* Option background — best-effort, some browsers ignore */
+.select-wrap select option { background:var(--surface2); color:var(--text); }
+
+/* EXPORT DROPDOWN */
+.export-wrap { position:relative; }
+.export-menu { display:none; position:absolute; right:0; top:calc(100% + 6px); background:var(--surface); border:1px solid var(--border); border-radius:10px; min-width:190px; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,0.3); overflow:hidden; }
+.export-menu button { display:block; width:100%; text-align:left; padding:11px 16px; background:none; border:none; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.85rem; cursor:pointer; transition:background 0.15s; }
+.export-menu button:hover { background:var(--surface2); }
+.export-menu.open { display:block; }
+
+/* COLLAPSIBLE SECTIONS */
+.section-divider { display:flex; justify-content:space-between; align-items:center; padding:14px 0 10px; border-top:1px solid var(--border); margin-top:8px; cursor:pointer; font-family:'DM Serif Display',serif; font-size:1.1rem; color:var(--text-muted); user-select:none; transition:color 0.2s; }
+.section-divider:hover { color:var(--text); }
+.chevron { font-size:0.9rem; transition:transform 0.2s; }
+.section-body { margin-bottom:8px; }
+
+/* FIRE TYPE BADGE on dashboard */
+.fire-type-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; letter-spacing:0.04em; margin-bottom:10px; }
+
+
 .slider-group { display:flex; flex-direction:column; gap:8px; }
 .slider-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .slider-val { font-family:'DM Sans',sans-serif; font-weight:700; color:var(--fire-orange); font-size:0.92rem; white-space:nowrap; }
@@ -449,7 +488,15 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="toggle" id="modeToggle"></div>
         <span class="toggle-label" id="modeLabel">Light mode</span>
       </div>
-      <button class="btn btn-ghost" onclick="exportPDF()">⬇ Export</button>
+      <div class="export-wrap" id="exportWrap">
+        <button class="btn btn-ghost" onclick="toggleExportMenu()">⬇ Export</button>
+        <div class="export-menu" id="exportMenu">
+          <button onclick="exportPDF();closeExportMenu()">🖨 PDF / Print</button>
+          <button onclick="exportCSV();closeExportMenu()">📊 CSV Spreadsheet</button>
+          <button onclick="exportTXT();closeExportMenu()">📄 Text Summary</button>
+          <button onclick="exportEmail();closeExportMenu()">✉️ Email Summary</button>
+        </div>
+      </div>
       <button class="btn btn-fire" onclick="calculate(); showView('dashboard')">Calculate →</button>
     </div>
   </header>
@@ -459,10 +506,6 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     <div class="tabs">
       <button class="tab" onclick="switchTab(this,'input')">📝 Profile</button>
       <button class="tab active" onclick="switchTab(this,'dashboard')">🔥 Dashboard</button>
-      <button class="tab" onclick="switchTab(this,'projection')">📈 Projections</button>
-      <button class="tab" onclick="switchTab(this,'whatif')">🎯 What-If</button>
-      <button class="tab" onclick="switchTab(this,'tips')">💡 Tips</button>
-      <button class="tab" onclick="switchTab(this,'history')">📊 History</button>
     </div>
   </div>
 
@@ -478,50 +521,50 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Your Age</label>
-            <button class="ib" onclick="tt('Your Age','Your current age in years. This anchors your entire FIRE timeline — the earlier you start, the more compound growth works in your favor. Even starting at 35 vs 25 can mean 10 extra years of full-time work.','Personal')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Your Age" data-tt-b="Your current age in years. This anchors your entire FIRE timeline — the earlier you start, the more compound growth works in your favor. Even starting at 35 vs 25 can mean 10 extra years of full-time work." data-tt-g="Personal">i</button></div>
             <input type="number" id="age" value="32" min="18" max="80">
           </div>
           <div class="form-group">
             <div class="label-row"><label>Target Retirement Age</label>
-            <button class="ib" onclick="tt('Target Retirement Age','The age you\'d like to achieve financial independence and retire early. Traditional FIRE targets range from 35–55. The further out your target, the more time compound interest has to do the heavy lifting.','FIRE Goal')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Target Retirement Age" data-tt-b="The age you'd like to achieve financial independence and retire early. Traditional FIRE targets range from 35–55. The further out your target, the more time compound interest has to do the heavy lifting." data-tt-g="FIRE Goal">i</button></div>
             <input type="number" id="retireAge" value="50">
           </div>
           <div class="form-group">
             <div class="label-row"><label>Dependents / Kids</label>
-            <button class="ib" onclick="tt('Dependents','Number of people relying on your income. More dependents typically mean higher expenses, college savings goals (529 accounts), and health insurance complexity — all affecting your FIRE timeline.','Planning')">i</button></div>
-            <select id="dependents"><option value="0">None</option><option value="1">1 child</option><option value="2">2 children</option><option value="3">3+ children</option></select>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Dependents" data-tt-b="Number of people relying on your income. More dependents typically mean higher expenses, college savings goals (529 accounts), and health insurance complexity — all affecting your FIRE timeline." data-tt-g="Planning">i</button></div>
+            <div class="select-wrap"><select id="dependents"><option value="0">None</option><option value="1">1 child</option><option value="2">2 children</option><option value="3">3+ children</option></select></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Tax Filing Status</label>
-            <button class="ib" onclick="tt('Tax Filing Status','How you file with the IRS. Married Filing Jointly usually offers the most favorable tax brackets. This affects your effective tax rate, Roth IRA income limits, and capital gains tax rates.','Taxes')">i</button></div>
-            <select id="filingStatus"><option>Married Filing Jointly</option><option>Single</option><option>Head of Household</option></select>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Tax Filing Status" data-tt-b="How you file with the IRS. Married Filing Jointly usually offers the most favorable tax brackets. This affects your effective tax rate, Roth IRA income limits, and capital gains tax rates." data-tt-g="Taxes">i</button></div>
+            <div class="select-wrap"><select id="filingStatus"><option>Married Filing Jointly</option><option>Single</option><option>Head of Household</option></select></div>
           </div>
         </div>
 
         <div class="divider"></div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:11px">
           <label style="font-size:0.82rem;color:var(--text)">FIRE Type Goal</label>
-          <button class="ib" onclick="tt('FIRE Types','FIRE stands for Financial Independence, Retire Early. There are several flavors based on your target lifestyle spending. Tap the ⓘ on each type below for a full explanation and example FIRE numbers.','FIRE Concepts')">i</button>
+          <button class="ib" onclick="showTT(this)" data-tt-t="FIRE Types" data-tt-b="FIRE stands for Financial Independence, Retire Early. There are several flavors based on your target lifestyle spending. Tap the (i) on each type below for a full explanation and example FIRE numbers." data-tt-g="FIRE Concepts">i</button>
         </div>
         <div class="fire-types">
           <div class="ft-btn" onclick="setFT('lean',this)">
-            <button class="ft-ib" onclick="event.stopPropagation();tt('🥗 Lean FIRE','<strong>Lean FIRE</strong> means retiring on a very frugal budget — typically <strong>under $40,000/year</strong> for a household.<br><br><strong>✅ Pros:</strong> Achieve FI much faster, need a smaller portfolio (~$1M), simpler lifestyle<br><strong>❌ Cons:</strong> Very little margin for error, few luxuries, vulnerable to medical or unexpected costs<br><br><strong>Example FIRE Number:</strong> $30K/yr ÷ 4% = <strong>$750,000</strong><br><br>Best for: Minimalists, low cost-of-living areas, those willing to live very lean.','Lean FIRE')">i</button>
+            <button class="ft-ib" onclick="event.stopPropagation();showTT(this)" data-tt-t="🥗 Lean FIRE" data-tt-b="<strong>Lean FIRE</strong> means retiring on a very frugal budget — typically <strong>under $40,000/year</strong> for a household.<br><br><strong>✅ Pros:</strong> Achieve FI much faster, need a smaller portfolio (~$1M), simpler lifestyle<br><strong>❌ Cons:</strong> Very little margin for error, few luxuries, vulnerable to medical or unexpected costs<br><br><strong>Example FIRE Number:</strong> $30K/yr ÷ 4% = <strong>$750,000</strong><br><br>Best for: Minimalists, low cost-of-living areas, those willing to live very lean." data-tt-g="Lean FIRE">i</button>
             <div class="ft-icon">🥗</div><div class="ft-name">Lean</div><div class="ft-range">&lt;$40K/yr</div>
           </div>
           <div class="ft-btn active" onclick="setFT('regular',this)">
-            <button class="ft-ib" onclick="event.stopPropagation();tt('🔥 Regular FIRE','<strong>Regular FIRE</strong> is the classic version — retiring comfortably without being extravagant, typically <strong>$40,000–$80,000/year</strong>.<br><br><strong>✅ Pros:</strong> Balance of lifestyle and feasibility, works for most families<br><strong>❌ Cons:</strong> Requires significant savings discipline over many years<br><br><strong>Example FIRE Number:</strong> $60K/yr ÷ 4% = <strong>$1,500,000</strong><br><br>Best for: Most households who want real financial freedom without radical frugality.','Regular FIRE')">i</button>
+            <button class="ft-ib" onclick="event.stopPropagation();showTT(this)" data-tt-t="🔥 Regular FIRE" data-tt-b="<strong>Regular FIRE</strong> is the classic version — retiring comfortably without being extravagant, typically <strong>$40,000–$80,000/year</strong>.<br><br><strong>✅ Pros:</strong> Balance of lifestyle and feasibility, works for most families<br><strong>❌ Cons:</strong> Requires significant savings discipline over many years<br><br><strong>Example FIRE Number:</strong> $60K/yr ÷ 4% = <strong>$1,500,000</strong><br><br>Best for: Most households who want real financial freedom without radical frugality." data-tt-g="Regular FIRE">i</button>
             <div class="ft-icon">🔥</div><div class="ft-name">Regular</div><div class="ft-range">$40–80K</div>
           </div>
           <div class="ft-btn" onclick="setFT('fat',this)">
-            <button class="ft-ib" onclick="event.stopPropagation();tt('🎩 Fat FIRE','<strong>Fat FIRE</strong> means retiring with a high-end lifestyle — typically <strong>$100,000+/year</strong> in spending, no compromises.<br><br><strong>✅ Pros:</strong> Full luxury retirement, large safety margin<br><strong>❌ Cons:</strong> Requires a very large portfolio ($2.5M–$5M+), takes longer<br><br><strong>Example FIRE Number:</strong> $120K/yr ÷ 4% = <strong>$3,000,000</strong><br><br>Best for: High earners who won\'t compromise their lifestyle or want to travel extensively in retirement.','Fat FIRE')">i</button>
+            <button class="ft-ib" onclick="event.stopPropagation();showTT(this)" data-tt-t="🎩 Fat FIRE" data-tt-b="<strong>Fat FIRE</strong> means retiring with a high-end lifestyle — typically <strong>$100,000+/year</strong> in spending, no compromises.<br><br><strong>✅ Pros:</strong> Full luxury retirement, large safety margin<br><strong>❌ Cons:</strong> Requires a very large portfolio ($2.5M–$5M+), takes longer<br><br><strong>Example FIRE Number:</strong> $120K/yr ÷ 4% = <strong>$3,000,000</strong><br><br>Best for: High earners who won't compromise their lifestyle or want to travel extensively in retirement." data-tt-g="Fat FIRE">i</button>
             <div class="ft-icon">🎩</div><div class="ft-name">Fat</div><div class="ft-range">$100K+</div>
           </div>
           <div class="ft-btn" onclick="setFT('coast',this)">
-            <button class="ft-ib" onclick="event.stopPropagation();tt('⛵ Coast FIRE','<strong>Coast FIRE</strong> means you\'ve saved enough that — <em>without ever adding another dollar</em> — your portfolio will compound to your FIRE number by a target retirement age on its own.<br><br><strong>The math:</strong> Coast Number = FIRE Number ÷ (1 + return rate)^years to retirement<br><br><strong>✅ Pros:</strong> Once reached, you only need to cover today\'s living expenses. You can downshift to lower-stress work, part-time, or passion projects.<br><strong>❌ Cons:</strong> You\'re still working (just not saving for retirement)<br><br>Best for: Those who saved aggressively early and want to slow down without stopping entirely.','Coast FIRE')">i</button>
+            <button class="ft-ib" onclick="event.stopPropagation();showTT(this)" data-tt-t="⛵ Coast FIRE" data-tt-b="<strong>Coast FIRE</strong> means you've saved enough that — <em>without ever adding another dollar</em> — your portfolio will compound to your FIRE number by a target retirement age on its own.<br><br><strong>The math:</strong> Coast Number = FIRE Number ÷ (1 + return rate)^years to retirement<br><br><strong>✅ Pros:</strong> Once reached, you only need to cover today's living expenses. You can downshift to lower-stress work, part-time, or passion projects.<br><strong>❌ Cons:</strong> You're still working (just not saving for retirement)<br><br>Best for: Those who saved aggressively early and want to slow down without stopping entirely." data-tt-g="Coast FIRE">i</button>
             <div class="ft-icon">⛵</div><div class="ft-name">Coast</div><div class="ft-range">Stop saving</div>
           </div>
           <div class="ft-btn" onclick="setFT('barista',this)">
-            <button class="ft-ib" onclick="event.stopPropagation();tt('☕ Barista FIRE','<strong>Barista FIRE</strong> (also called Semi-FIRE or Slow FIRE) means leaving your high-stress career but continuing <em>part-time or passion work</em> that covers day-to-day living expenses — letting your portfolio grow untouched.<br><br><strong>The name comes from:</strong> Starbucks baristas who work 20+ hrs/week and qualify for health benefits — solving early retirees\' biggest challenge: healthcare before Medicare at 65.<br><br><strong>✅ Pros:</strong> Social connection, employer health benefits, portfolio keeps compounding<br><strong>❌ Cons:</strong> Still technically working, income not fully passive<br><br>Best for: People escaping the grind who aren\'t ready (or don\'t need) to fully stop working.','Barista FIRE')">i</button>
+            <button class="ft-ib" onclick="event.stopPropagation();showTT(this)" data-tt-t="☕ Barista FIRE" data-tt-b="<strong>Barista FIRE</strong> (also called Semi-FIRE or Slow FIRE) means leaving your high-stress career but continuing <em>part-time or passion work</em> that covers day-to-day living expenses — letting your portfolio grow untouched.<br><br><strong>The name comes from:</strong> Starbucks baristas who work 20+ hrs/week and qualify for health benefits — solving early retirees' biggest challenge: healthcare before Medicare at 65.<br><br><strong>✅ Pros:</strong> Social connection, employer health benefits, portfolio keeps compounding<br><strong>❌ Cons:</strong> Still technically working, income not fully passive<br><br>Best for: People escaping the grind who aren't ready (or don't need) to fully stop working." data-tt-g="Barista FIRE">i</button>
             <div class="ft-icon">☕</div><div class="ft-name">Barista</div><div class="ft-range">Part-time</div>
           </div>
         </div>
@@ -533,22 +576,22 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Annual Gross Salary</label>
-            <button class="ib" onclick="tt('Annual Gross Salary','Your total salary <em>before</em> taxes and deductions — what\'s on your W-2 or offer letter. If self-employed, use net income after business expenses. This is the base for calculating your savings rate.','Income')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Gross Salary" data-tt-b="Your total salary <em>before</em> taxes and deductions — what's on your W-2 or offer letter. If self-employed, use net income after business expenses. This is the base for calculating your savings rate." data-tt-g="Income">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="salary" value="95000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual Bonus / Variable Pay</label>
-            <button class="ib" onclick="tt('Bonus / Variable Pay','Performance bonuses, profit sharing, commissions, or other variable income beyond base salary. Use a realistic average — not your best year. Many FIRE practitioners invest 100% of their bonus.','Income')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Bonus / Variable Pay" data-tt-b="Performance bonuses, profit sharing, commissions, or other variable income beyond base salary. Use a realistic average — not your best year. Many FIRE practitioners invest 100% of their bonus." data-tt-g="Income">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="bonus" value="8000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>RSU Annual Vest Value</label>
-            <button class="ib" onclick="tt('RSUs — Restricted Stock Units','Company stock grants that vest over time (typically 4 years with a 1-year cliff). When they vest, they\'re taxed as ordinary income. Enter the expected annual vesting value.<br><br>RSU values fluctuate with stock price — conservative FIRE planners use a discounted estimate or zero them out entirely for planning purposes.','Income')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="RSUs — Restricted Stock Units" data-tt-b="Company stock grants that vest over time (typically 4 years with a 1-year cliff). When they vest, they're taxed as ordinary income. Enter the expected annual vesting value.<br><br>RSU values fluctuate with stock price — conservative FIRE planners use a discounted estimate or zero them out entirely for planning purposes." data-tt-g="Income">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rsus" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Side Hustle / Passive Income</label>
-            <button class="ib" onclick="tt('Side Hustle & Passive Income','Any income beyond your main job: freelancing, consulting, rental income, blog/content/YouTube revenue, dividend income from taxable accounts, etc.<br><br>This is powerful for FIRE — every dollar of passive income directly reduces the portfolio you need.','Income')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Side Hustle & Passive Income" data-tt-b="Any income beyond your main job: freelancing, consulting, rental income, blog/content/YouTube revenue, dividend income from taxable accounts, etc.<br><br>This is powerful for FIRE — every dollar of passive income directly reduces the portfolio you need." data-tt-g="Income">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="sideIncome" placeholder="0"></div>
           </div>
         </div>
@@ -569,12 +612,12 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="two-col">
               <div class="form-group">
                 <div class="label-row"><label>Partner Age</label>
-                <button class="ib" onclick="tt('Partner Age','Your partner\'s current age. Useful for coordinating retirement timing — an age gap may mean staggering FIRE dates (one partner retires while the other maintains employer health insurance).','Partner')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Age" data-tt-b="Your partner's current age. Useful for coordinating retirement timing — an age gap may mean staggering FIRE dates (one partner retires while the other maintains employer health insurance)." data-tt-g="Partner">i</button></div>
                 <input type="number" id="partnerAge" placeholder="e.g. 30">
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Target Retire Age</label>
-                <button class="ib" onclick="tt('Partner Target Retirement Age','When your partner aims to stop working. This may differ from yours — for example, one partner retires at 45 while the other works until 50 for health insurance or additional income.','Partner')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Target Retirement Age" data-tt-b="When your partner aims to stop working. This may differ from yours — for example, one partner retires at 45 while the other works until 50 for health insurance or additional income." data-tt-g="Partner">i</button></div>
                 <input type="number" id="partnerRetireAge" placeholder="e.g. 50">
               </div>
             </div>
@@ -583,22 +626,22 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="two-col">
               <div class="form-group">
                 <div class="label-row"><label>Partner Salary</label>
-                <button class="ib" onclick="tt('Partner Annual Salary','Your partner\'s gross annual salary. Dual-income households have a massive FIRE advantage — two salaries often means living on one and investing the other, effectively doubling your savings rate.','Partner Income')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Annual Salary" data-tt-b="Your partner's gross annual salary. Dual-income households have a massive FIRE advantage — two salaries often means living on one and investing the other, effectively doubling your savings rate." data-tt-g="Partner Income">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerSalary" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Bonus / Variable</label>
-                <button class="ib" onclick="tt('Partner Bonus / Variable Pay','Any performance bonuses or variable compensation your partner earns annually. Enter a realistic average.','Partner Income')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Bonus / Variable Pay" data-tt-b="Any performance bonuses or variable compensation your partner earns annually. Enter a realistic average." data-tt-g="Partner Income">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerBonus" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner RSUs</label>
-                <button class="ib" onclick="tt('Partner RSU Vest Value','Your partner\'s annual RSU vesting value. If they work at a tech or public company this can be substantial — factor it into household savings planning.','Partner Income')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner RSU Vest Value" data-tt-b="Your partner's annual RSU vesting value. If they work at a tech or public company this can be substantial — factor it into household savings planning." data-tt-g="Partner Income">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerRSUs" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Side Income</label>
-                <button class="ib" onclick="tt('Partner Side / Passive Income','Any freelance, rental, or passive income your partner earns outside their primary job.','Partner Income')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Side / Passive Income" data-tt-b="Any freelance, rental, or passive income your partner earns outside their primary job." data-tt-g="Partner Income">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerSideIncome" placeholder="0"></div>
               </div>
             </div>
@@ -607,32 +650,32 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="two-col">
               <div class="form-group">
                 <div class="label-row"><label>Partner 401(k) / 403(b) Balance</label>
-                <button class="ib" onclick="tt('Partner 401(k) Balance','Your partner\'s employer-sponsored retirement account balance. Tracked separately from yours — both grow tax-deferred and count toward your household FIRE portfolio.','Partner Assets')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Balance" data-tt-b="Your partner's employer-sponsored retirement account balance. Tracked separately from yours — both grow tax-deferred and count toward your household FIRE portfolio." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401k" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner 401(k) Annual Contribution</label>
-                <button class="ib" onclick="tt('Partner 401(k) Contribution','How much your partner contributes annually including employer match. The 2024 employee limit is $23,000 ($30,500 if 50+). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing.','Partner Assets')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution" data-tt-b="How much your partner contributes annually including employer match. The 2024 employee limit is $23,000 ($30,500 if 50+). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401kContrib" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Roth IRA</label>
-                <button class="ib" onclick="tt('Partner Roth IRA','Each spouse can have their own Roth IRA — growing tax-free with tax-free withdrawals in retirement. Both can contribute $7,000/yr ($8,000 if 50+) subject to joint income limits. Roth contributions can be withdrawn penalty-free at any age — a critical FIRE tool.','Partner Assets')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Roth IRA" data-tt-b="Each spouse can have their own Roth IRA — growing tax-free with tax-free withdrawals in retirement. Both can contribute $7,000/yr ($8,000 if 50+) subject to joint income limits. Roth contributions can be withdrawn penalty-free at any age — a critical FIRE tool." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerRothIra" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner HSA</label>
-                <button class="ib" onclick="tt('Partner HSA','If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The family contribution limit is $8,300 in 2024 — invest it in index funds for the ultimate triple-tax-advantaged account.','Partner Assets')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner HSA" data-tt-b="If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The family contribution limit is $8,300 in 2024 — invest it in index funds for the ultimate triple-tax-advantaged account." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerHSA" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Brokerage Account</label>
-                <button class="ib" onclick="tt('Partner Brokerage Account','Your partner\'s taxable investment account. No contribution limits, no withdrawal restrictions — can be accessed at any age. Essential as a FIRE bridge account before age 59½.','Partner Assets')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Brokerage Account" data-tt-b="Your partner's taxable investment account. No contribution limits, no withdrawal restrictions — can be accessed at any age. Essential as a FIRE bridge account before age 59½." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerBrokerage" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Social Security Est.</label>
-                <button class="ib" onclick="tt('Partner Social Security Estimate','Your partner\'s estimated annual SS benefit at full retirement age. Find it at ssa.gov/myaccount. Combined SS for a couple can significantly reduce your FIRE number — each $1,000/mo in SS = $300,000 less you need invested (at 4% SWR).','Partner Assets')">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Social Security Estimate" data-tt-b="Your partner's estimated annual SS benefit at full retirement age. Find it at ssa.gov/myaccount. Combined SS for a couple can significantly reduce your FIRE number — each $1,000/mo in SS = $300,000 less you need invested (at 4% SWR)." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerSS" placeholder="0"></div>
               </div>
             </div>
@@ -646,12 +689,12 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Annual Household Spending</label>
-            <button class="ib" onclick="tt('Annual Household Spending','Your <strong>single most important FIRE number</strong>. Total annual expenses: housing, food, transportation, utilities, healthcare, entertainment, travel, and everything else.<br><br><strong>The Rule:</strong> FIRE Number = Annual Spending × 25 (at 4% SWR)<br><br>Cutting $500/month from expenses reduces your FIRE Number by $150,000 AND adds $6,000/yr to savings. Expense reduction is the most powerful FIRE lever.','Key Input ⚡')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Household Spending" data-tt-b="Your <strong>single most important FIRE number</strong>. Total annual expenses: housing, food, transportation, utilities, healthcare, entertainment, travel, and everything else.<br><br><strong>The Rule:</strong> FIRE Number = Annual Spending × 25 (at 4% SWR)<br><br>Cutting $500/month from expenses reduces your FIRE Number by $150,000 AND adds $6,000/yr to savings. Expense reduction is the most powerful FIRE lever." data-tt-g="Key Input ⚡">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="expenses" value="55000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Emergency Fund (months covered)</label>
-            <button class="ib" onclick="tt('Emergency Fund','How many months of expenses you have in liquid, accessible cash. Financial experts recommend 3–6 months.<br><br>FIRE practitioners often hold 1–2 <em>years</em> in cash/short bonds as a sequence-of-returns buffer — protecting against having to sell investments at a loss early in retirement when markets are down.','Foundation')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Emergency Fund" data-tt-b="How many months of expenses you have in liquid, accessible cash. Financial experts recommend 3–6 months.<br><br>FIRE practitioners often hold 1–2 <em>years</em> in cash/short bonds as a sequence-of-returns buffer — protecting against having to sell investments at a loss early in retirement when markets are down." data-tt-g="Foundation">i</button></div>
             <input type="number" id="emergencyMonths" value="4">
           </div>
         </div>
@@ -665,42 +708,42 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Traditional 401(k) / 403(b)</label>
-            <button class="ib" onclick="tt('Traditional 401(k) / 403(b)','Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>2024 limits:</strong> $23,000 employee / $69,000 total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free.','Tax-Deferred')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Traditional 401(k) / 403(b)" data-tt-b="Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>2024 limits:</strong> $23,000 employee / $69,000 total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free." data-tt-g="Tax-Deferred">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401" value="87000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Roth 401(k) Balance</label>
-            <button class="ib" onclick="tt('Roth 401(k)','After-tax contributions; <strong>withdrawals in retirement are completely tax-free</strong>, including growth. Shares the same $23,000 contribution limit with Traditional 401k — you split contributions between them however you like.<br><br>Best for: those who expect to be in a higher tax bracket in retirement, or want tax diversification. Many FIRE practitioners prefer Roth accounts to minimize taxes during a potentially long, low-income retirement.','Tax-Free')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Roth 401(k)" data-tt-b="After-tax contributions; <strong>withdrawals in retirement are completely tax-free</strong>, including growth. Shares the same $23,000 contribution limit with Traditional 401k — you split contributions between them however you like.<br><br>Best for: those who expect to be in a higher tax bracket in retirement, or want tax diversification. Many FIRE practitioners prefer Roth accounts to minimize taxes during a potentially long, low-income retirement." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="roth401k" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual 401(k) Contribution</label>
-            <button class="ib" onclick="tt('Annual 401(k) Contribution','How much you contribute per year including employer match (Roth + Traditional combined). Maxing this out is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged.','Tax-Advantaged')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual 401(k) Contribution" data-tt-b="How much you contribute per year including employer match (Roth + Traditional combined). Maxing this out is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged." data-tt-g="Tax-Advantaged">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401Contrib" value="23000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Roth IRA Balance</label>
-            <button class="ib" onclick="tt('Roth IRA','Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>2024 limits:</strong> $7,000/yr ($8,000 if 50+)<br><strong>Income limits:</strong> $161K single / $240K married to contribute directly<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½.','Tax-Free')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Roth IRA" data-tt-b="Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>2024 limits:</strong> $7,000/yr ($8,000 if 50+)<br><strong>Income limits:</strong> $161K single / $240K married to contribute directly<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIra" value="22000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual Roth IRA Contribution</label>
-            <button class="ib" onclick="tt('Annual Roth IRA Contribution','How much you contribute to your Roth IRA each year. 2024 limit: $7,000/yr ($8,000 if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever.','Tax-Free')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Roth IRA Contribution" data-tt-b="How much you contribute to your Roth IRA each year. 2024 limit: $7,000/yr ($8,000 if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIraContrib" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Traditional IRA Balance</label>
-            <button class="ib" onclick="tt('Traditional IRA','Pre-tax contributions; grows tax-deferred. <strong>Withdrawals taxed as ordinary income.</strong><br><br>For FIRE, Traditional IRAs are often source accounts for <strong>Roth Conversion Ladders</strong> — converting funds to Roth over time in low-income early retirement years, dramatically reducing lifetime taxes.','Tax-Deferred')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Traditional IRA" data-tt-b="Pre-tax contributions; grows tax-deferred. <strong>Withdrawals taxed as ordinary income.</strong><br><br>For FIRE, Traditional IRAs are often source accounts for <strong>Roth Conversion Ladders</strong> — converting funds to Roth over time in low-income early retirement years, dramatically reducing lifetime taxes." data-tt-g="Tax-Deferred">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="tradIra" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>HSA Balance</label>
-            <button class="ib" onclick="tt('HSA — Health Savings Account','The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>2024 limits:</strong> $4,150 individual / $8,300 family<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>.','Tax-Free ⭐')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="HSA — Health Savings Account" data-tt-b="The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>2024 limits:</strong> $4,150 individual / $8,300 family<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>." data-tt-g="Tax-Free ⭐">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsa" value="9500"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual HSA Contribution</label>
-            <button class="ib" onclick="tt('Annual HSA Contribution','How much you add to your HSA yearly. Maxing this out ($4,150 individual / $8,300 family) is strongly recommended — it\'s the most tax-efficient account available to most Americans.','Tax-Advantaged')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual HSA Contribution" data-tt-b="How much you add to your HSA yearly. Maxing this out ($4,150 individual / $8,300 family) is strongly recommended — it's the most tax-efficient account available to most Americans." data-tt-g="Tax-Advantaged">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsaContrib" value="4150"></div>
           </div>
         </div>
@@ -710,32 +753,32 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Brokerage Account Balance</label>
-            <button class="ib" onclick="tt('Taxable Brokerage Account','A regular investment account with no contribution limits and no withdrawal restrictions — accessible at any age without penalty. Long-term capital gains are taxed at 0%, 15%, or 20% depending on income.<br><br><strong>FIRE Bridge Account:</strong> Essential for funding retirement spending <em>before</em> age 59½ when tax-advantaged accounts become accessible without penalty. JL Collins recommends VTSAX or a total market ETF here.','Investments')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Taxable Brokerage Account" data-tt-b="A regular investment account with no contribution limits and no withdrawal restrictions — accessible at any age without penalty. Long-term capital gains are taxed at 0%, 15%, or 20% depending on income.<br><br><strong>FIRE Bridge Account:</strong> Essential for funding retirement spending <em>before</em> age 59½ when tax-advantaged accounts become accessible without penalty. JL Collins recommends VTSAX or a total market ETF here." data-tt-g="Investments">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="brokerage" value="34000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual Brokerage Contribution</label>
-            <button class="ib" onclick="tt('Brokerage Annual Contribution','How much you invest in your taxable account each year. After maxing tax-advantaged accounts (401k → IRA → HSA), all additional investing goes here.','Investments')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Brokerage Annual Contribution" data-tt-b="How much you invest in your taxable account each year. After maxing tax-advantaged accounts (401k → IRA → HSA), all additional investing goes here." data-tt-g="Investments">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="brokerageContrib" value="5000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Home Market Value</label>
-            <button class="ib" onclick="tt('Home Market Value','Enter your home\'s current estimated market value (what it would sell for today). <strong>Do not subtract your mortgage</strong> — we calculate your equity automatically from market value minus mortgage balance.<br><br><strong>Your equity = Home Value − Mortgage Balance</strong><br><br>Home equity is a real asset but typically not counted toward your investable FIRE portfolio — you can\'t easily spend it while living there. Access options: downsizing, HELOC, reverse mortgage (60+).<br><br><strong>FIRE community rule of thumb:</strong> Don\'t buy a home worth more than 2.5× your household income. A $200K income household → $500K max home. Buying more ties up capital that could be compounding in the market.','Real Estate')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Home Market Value" data-tt-b="Enter your home's current estimated market value (what it would sell for today). <strong>Do not subtract your mortgage</strong> — we calculate your equity automatically from market value minus mortgage balance.<br><br><strong>Your equity = Home Value − Mortgage Balance</strong><br><br>Home equity is a real asset but typically not counted toward your investable FIRE portfolio — you can't easily spend it while living there. Access options: downsizing, HELOC, reverse mortgage (60+).<br><br><strong>FIRE community rule of thumb:</strong> Don't buy a home worth more than 2.5× your household income. A $200K income household → $500K max home. Buying more ties up capital that could be compounding in the market." data-tt-g="Real Estate">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="homeEquity" value="350000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Cash / Savings / HYSA</label>
-            <button class="ib" onclick="tt('Cash & Savings','Money in checking, savings, money market accounts, or CDs. Your most liquid asset.<br><br>Key uses: emergency fund, short-term goals, and a retirement cash buffer. Holding too much long-term is a drag — inflation erodes it. High-yield savings accounts (HYSAs) currently pay 4–5% APY, making cash more competitive than it\'s been in decades.','Liquid Assets')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Cash & Savings" data-tt-b="Money in checking, savings, money market accounts, or CDs. Your most liquid asset.<br><br>Key uses: emergency fund, short-term goals, and a retirement cash buffer. Holding too much long-term is a drag — inflation erodes it. High-yield savings accounts (HYSAs) currently pay 4–5% APY, making cash more competitive than it's been in decades." data-tt-g="Liquid Assets">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="cash" value="18000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>529 College Savings</label>
-            <button class="ib" onclick="tt('529 College Savings Plan','Tax-advantaged accounts for education expenses. Contributions grow tax-free and withdrawals for qualified expenses are tax-free.<br><br><strong>New in 2024:</strong> Up to $35,000 of unused 529 funds can be rolled to a Roth IRA (15-year rule, annual Roth limits apply) — making it less risky to over-save here.','Education')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="529 College Savings Plan" data-tt-b="Tax-advantaged accounts for education expenses. Contributions grow tax-free and withdrawals for qualified expenses are tax-free.<br><br><strong>New in 2024:</strong> Up to $35,000 of unused 529 funds can be rolled to a Roth IRA (15-year rule, annual Roth limits apply) — making it less risky to over-save here." data-tt-g="Education">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="college" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Pension / Annuity Income</label>
-            <button class="ib" onclick="tt('Pension / Annuity Annual Income','Enter the <strong>annual income</strong> your pension or annuity will pay in retirement — not a lump-sum balance.<br><br>Like Social Security, this income directly reduces how much your portfolio needs to generate, lowering your FIRE Number.<br><br><strong>Example:</strong> A pension paying $24,000/yr at 4% SWR is equivalent to having $600,000 invested — pensions are often undervalued in FIRE planning.<br><br>If you have a lump-sum option instead of income, enter it as a brokerage balance above.','Other Income')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Pension / Annuity Annual Income" data-tt-b="Enter the <strong>annual income</strong> your pension or annuity will pay in retirement — not a lump-sum balance.<br><br>Like Social Security, this income directly reduces how much your portfolio needs to generate, lowering your FIRE Number.<br><br><strong>Example:</strong> A pension paying $24,000/yr at 4% SWR is equivalent to having $600,000 invested — pensions are often undervalued in FIRE planning.<br><br>If you have a lump-sum option instead of income, enter it as a brokerage balance above." data-tt-g="Other Income">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="pension" placeholder="0"></div>
           </div>
         </div>
@@ -747,39 +790,39 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Mortgage Balance</label>
-            <button class="ib" onclick="tt('Mortgage Balance','The remaining amount owed on your home loan. Generally considered manageable debt — a home appreciates while your loan balance decreases.<br><br>In today\'s 6–7% rate environment, the decision to pay off early vs. invest extra cash is genuinely close. At rates below 4%, investing is almost always better. At 6%+, paying down becomes increasingly attractive.','Debt')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Mortgage Balance" data-tt-b="The remaining amount owed on your home loan. Generally considered manageable debt — a home appreciates while your loan balance decreases.<br><br>In today's 6–7% rate environment, the decision to pay off early vs. invest extra cash is genuinely close. At rates below 4%, investing is almost always better. At 6%+, paying down becomes increasingly attractive." data-tt-g="Debt">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="mortgage" value="285000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Mortgage Rate (%)</label>
-            <button class="ib" onclick="tt('Mortgage Interest Rate','Your annual interest rate. The math: if your rate is above your expected real investment return, pay it down. If below, invest the difference.<br><br>Example: 3% mortgage vs. 7% expected returns = invest. 7% mortgage vs. 7% returns = pay down or split.','Debt')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Mortgage Interest Rate" data-tt-b="Your annual interest rate. The math: if your rate is above your expected real investment return, pay it down. If below, invest the difference.<br><br>Example: 3% mortgage vs. 7% expected returns = invest. 7% mortgage vs. 7% returns = pay down or split." data-tt-g="Debt">i</button></div>
             <input type="number" id="mortgageRate" value="6.5" step="0.1">
           </div>
           <div class="form-group">
             <div class="label-row"><label>Student Loans</label>
-            <button class="ib" onclick="tt('Student Loans','Federal or private education debt. Federal loans offer income-driven repayment and forgiveness programs.<br><br><strong>FIRE strategy:</strong> Compare your rate to expected investment returns — loans above 6–7% generally warrant aggressive payoff before extra investing. Loans below 5% may be worth carrying while investing the difference.','Debt')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Student Loans" data-tt-b="Federal or private education debt. Federal loans offer income-driven repayment and forgiveness programs.<br><br><strong>FIRE strategy:</strong> Compare your rate to expected investment returns — loans above 6–7% generally warrant aggressive payoff before extra investing. Loans below 5% may be worth carrying while investing the difference." data-tt-g="Debt">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="studentLoans" value="18000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Student Loan Rate (%)</label>
-            <button class="ib" onclick="tt('Student Loan Rate','Federal rates for 2023–24 range from 5.5% to 8.05%. Use this to compare against your investment return assumption to decide whether to aggressively pay down or invest the difference.','Debt')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Student Loan Rate" data-tt-b="Federal rates for 2023–24 range from 5.5% to 8.05%. Use this to compare against your investment return assumption to decide whether to aggressively pay down or invest the difference." data-tt-g="Debt">i</button></div>
             <input type="number" id="studentLoanRate" value="5.8" step="0.1">
           </div>
           <div class="form-group">
             <div class="label-row"><label>Car Loan(s)</label>
-            <button class="ib" onclick="tt('Car Loans','Auto loan balances. Cars depreciate — unlike mortgages, there\'s no underlying asset appreciation to offset the debt.<br><br>FIRE tip: Many FIRE practitioners drive older, reliable paid-off vehicles. The average car payment is ~$700/mo — that\'s $210,000 less you need invested (at 4% SWR) if you eliminate that expense.','Debt')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Car Loans" data-tt-b="Auto loan balances. Cars depreciate — unlike mortgages, there's no underlying asset appreciation to offset the debt.<br><br>FIRE tip: Many FIRE practitioners drive older, reliable paid-off vehicles. The average car payment is ~$700/mo — that's $210,000 less you need invested (at 4% SWR) if you eliminate that expense." data-tt-g="Debt">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="carLoan" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Credit Card Debt 🚨</label>
-            <button class="ib" onclick="tt('Credit Card Debt — Priority #1','High-interest debt, typically 20–29% APR. <strong>This is almost always your highest priority to eliminate.</strong><br><br>No investment reliably beats a guaranteed 25% return from paying off a credit card. Zero this out before investing beyond your employer 401k match.','Debt 🚨')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Credit Card Debt — Priority #1" data-tt-b="High-interest debt, typically 20–29% APR. <strong>This is almost always your highest priority to eliminate.</strong><br><br>No investment reliably beats a guaranteed 25% return from paying off a credit card. Zero this out before investing beyond your employer 401k match." data-tt-g="Debt 🚨">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="ccDebt" placeholder="0"></div>
           </div>
         </div>
         <div class="divider"></div>
         <div class="form-group">
           <div class="label-row"><label>Total Monthly Debt Payments</label>
-          <button class="ib" onclick="tt('Total Monthly Debt Payments','The sum of all your required monthly minimum payments — mortgage, car loan, student loans, credit cards, etc. Check your latest statements for exact figures.<br><br><strong>This is what mortgage underwriters actually measure</strong> as Debt-to-Income (DTI): your total monthly payments divided by your gross monthly income.<br><br><strong>Benchmarks:</strong><br>• Under 28% — excellent (housing only)<br>• Under 36% — strong (all debts combined)<br>• 36–43% — acceptable but watch it<br>• Above 43% — lenders may decline; prioritize paydown<br><br><strong>Note:</strong> Total debt balances relative to income is a completely different metric — it\'s normal for a mortgage balance alone to be 2–4× annual income.','Debt-to-Income')">i</button></div>
+          <button class="ib" onclick="showTT(this)" data-tt-t="Total Monthly Debt Payments" data-tt-b="The sum of all your required monthly minimum payments — mortgage, car loan, student loans, credit cards, etc. Check your latest statements for exact figures.<br><br><strong>This is what mortgage underwriters actually measure</strong> as Debt-to-Income (DTI): your total monthly payments divided by your gross monthly income.<br><br><strong>Benchmarks:</strong><br>• Under 28% — excellent (housing only)<br>• Under 36% — strong (all debts combined)<br>• 36–43% — acceptable but watch it<br>• Above 43% — lenders may decline; prioritize paydown<br><br><strong>Note:</strong> Total debt balances relative to income is a completely different metric — it's normal for a mortgage balance alone to be 2–4× annual income." data-tt-g="Debt-to-Income">i</button></div>
           <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="monthlyDebtPayments" placeholder="e.g. 2400"></div>
         </div>
         <div class="itip"><span class="e">💡</span>Add up your mortgage payment, minimum credit card payments, car payments, and student loan payments from your statements. This is the number lenders and financial advisors actually use.</div>
@@ -793,7 +836,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           <div class="slider-header">
             <div class="label-row">
               <label>Expected Annual Return (real, inflation-adjusted)</label>
-              <button class="ib" onclick="tt('Expected Real Annual Return','The annual investment return <strong>after subtracting inflation (~3%)</strong>. All projections are in today\'s dollars — so your FIRE Number means the same purchasing power it does now.<br><br>Historical US stock market: ~10% nominal, ~7% real.<br><br><strong>Conservative:</strong> 5–6% (bond-heavy or cautious)<br><strong>Moderate:</strong> 7% (classic total market index)<br><strong>Aggressive:</strong> 8–9% (100% equities, long horizon)<br><br>Vanguard\'s 2024 forecast: 4.2–6.2% real for a balanced portfolio. Use 7% as a reasonable base case for long-term all-equity investing.','Returns')">i</button>
+              <button class="ib" onclick="showTT(this)" data-tt-t="Expected Real Annual Return" data-tt-b="The annual investment return <strong>after subtracting inflation (~3%)</strong>. All projections are in today's dollars — so your FIRE Number means the same purchasing power it does now.<br><br>Historical US stock market: ~10% nominal, ~7% real.<br><br><strong>Conservative:</strong> 5–6% (bond-heavy or cautious)<br><strong>Moderate:</strong> 7% (classic total market index)<br><strong>Aggressive:</strong> 8–9% (100% equities, long horizon)<br><br>Vanguard's 2024 forecast: 4.2–6.2% real for a balanced portfolio. Use 7% as a reasonable base case for long-term all-equity investing." data-tt-g="Returns">i</button>
             </div>
             <div class="slider-val" id="returnVal">7%</div>
           </div>
@@ -803,28 +846,28 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Safe Withdrawal Rate (SWR)</label>
-            <button class="ib" onclick="tt('Safe Withdrawal Rate (SWR)','The percentage of your portfolio you withdraw in year one of retirement, then adjust for inflation annually.<br><br><strong>The 4% Rule (Bengen, 1994):</strong> 4% survived every historical 30-year period including the Great Depression and 1970s stagflation.<br><br><strong>For early retirees (40–60 yr timelines):</strong> Consider 3–3.5%<br><strong>For traditional retirees (30 yrs):</strong> 4% is well-established<br><strong>Flexible spenders:</strong> 4.5–5% works if you can cut back in bad markets<br><br><strong>Formula:</strong> FIRE Number = Annual Expenses ÷ SWR','Core Concept')">i</button></div>
-            <select id="swr">
+            <button class="ib" onclick="showTT(this)" data-tt-t="Safe Withdrawal Rate (SWR)" data-tt-b="The percentage of your portfolio you withdraw in year one of retirement, then adjust for inflation annually.<br><br><strong>The 4% Rule (Bengen, 1994):</strong> 4% survived every historical 30-year period including the Great Depression and 1970s stagflation.<br><br><strong>For early retirees (40–60 yr timelines):</strong> Consider 3–3.5%<br><strong>For traditional retirees (30 yrs):</strong> 4% is well-established<br><strong>Flexible spenders:</strong> 4.5–5% works if you can cut back in bad markets<br><br><strong>Formula:</strong> FIRE Number = Annual Expenses ÷ SWR" data-tt-g="Core Concept">i</button></div>
+            <div class="select-wrap"><select id="swr">
               <option value="3">3% (Ultra-conservative)</option>
               <option value="3.5">3.5% (Conservative)</option>
               <option value="4" selected>4% (The Rule)</option>
               <option value="4.5">4.5% (Moderate)</option>
               <option value="5">5% (Aggressive)</option>
-            </select>
+            </select></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Your Social Security Estimate</label>
-            <button class="ib" onclick="tt('Social Security Estimate','Your estimated annual SS benefit at full retirement age (67 for those born after 1960). Find your personalized estimate at <strong>ssa.gov/myaccount</strong>.<br><br><strong>FIRE impact:</strong> SS directly reduces how much you need invested. Each $1,000/month in SS = ~$300,000 less in your FIRE number at 4% SWR.<br><br>Early retirees often use a conservative estimate or zero (since a long gap to 67 may apply).','Social Security')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Social Security Estimate" data-tt-b="Your estimated annual SS benefit at full retirement age (67 for those born after 1960). Find your personalized estimate at <strong>ssa.gov/myaccount</strong>.<br><br><strong>FIRE impact:</strong> SS directly reduces how much you need invested. Each $1,000/month in SS = ~$300,000 less in your FIRE number at 4% SWR.<br><br>Early retirees often use a conservative estimate or zero (since a long gap to 67 may apply)." data-tt-g="Social Security">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="socialSecurity" value="18000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Your SS Start Age</label>
-            <button class="ib" onclick="tt('Social Security Start Age','The age at which you plan to begin collecting Social Security.<br><br><strong>Full retirement age:</strong> 67 (born after 1960)<br><strong>Early claiming:</strong> Age 62 — reduces benefit by ~30%<br><strong>Delayed:</strong> Age 70 — increases benefit by 8%/yr past FRA<br><br><strong>FIRE gap warning:</strong> If you retire at 45 but SS starts at 67, your portfolio must fully fund <em>all</em> expenses for 22 years with no SS offset. FIREtrack adds this gap cost to your FIRE Number automatically.','Social Security')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Social Security Start Age" data-tt-b="The age at which you plan to begin collecting Social Security.<br><br><strong>Full retirement age:</strong> 67 (born after 1960)<br><strong>Early claiming:</strong> Age 62 — reduces benefit by ~30%<br><strong>Delayed:</strong> Age 70 — increases benefit by 8%/yr past FRA<br><br><strong>FIRE gap warning:</strong> If you retire at 45 but SS starts at 67, your portfolio must fully fund <em>all</em> expenses for 22 years with no SS offset. FIREtrack adds this gap cost to your FIRE Number automatically." data-tt-g="Social Security">i</button></div>
             <input type="number" id="ssStartAge" value="67" min="62" max="70">
           </div>
           <div class="form-group">
             <div class="label-row"><label>Est. Retirement Tax Rate</label>
-            <button class="ib" onclick="tt('Estimated Retirement Tax Rate','Your expected effective (average) tax rate in retirement — used to estimate how much you need to withdraw gross to net your target spending.<br><br><strong>Why it matters:</strong> Every dollar from a Traditional 401k or IRA is taxed as ordinary income. If you need $60K/yr and your effective tax rate is 15%, you actually need to withdraw ~$70,600 gross.<br><br><strong>Roth accounts and HSA (medical) withdrawals are tax-free</strong> — no grossing up needed.<br><br>Many early retirees have very low effective rates (5–15%) due to low income in early retirement — a key FIRE advantage. Use the Roth conversion ladder to further reduce this.','Tax Planning')">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Estimated Retirement Tax Rate" data-tt-b="Your expected effective (average) tax rate in retirement — used to estimate how much you need to withdraw gross to net your target spending.<br><br><strong>Why it matters:</strong> Every dollar from a Traditional 401k or IRA is taxed as ordinary income. If you need $60K/yr and your effective tax rate is 15%, you actually need to withdraw ~$70,600 gross.<br><br><strong>Roth accounts and HSA (medical) withdrawals are tax-free</strong> — no grossing up needed.<br><br>Many early retirees have very low effective rates (5–15%) due to low income in early retirement — a key FIRE advantage. Use the Roth conversion ladder to further reduce this." data-tt-g="Tax Planning">i</button></div>
             <div class="input-wrap has-suffix"><input type="number" id="retireTaxRate" value="15" min="0" max="50" step="1"><span class="input-suffix">%</span></div>
           </div>
         </div>
@@ -847,46 +890,41 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
       </div>
     </div>
-  </div>
 
-  <!-- ── PROJECTION VIEW ── -->
-  <div class="view" id="view-projection">
-    <div id="projContent">
-      <div class="empty">
-        <div class="ei">📈</div>
-        <p>Calculate your journey first to see growth projections.</p>
-        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+    <!-- PROJECTIONS SECTION -->
+    <div id="projSection" style="display:none">
+      <div class="section-divider" onclick="toggleSection('projContent','projChevron')">
+        <span>📈 Portfolio Projections</span><span id="projChevron" class="chevron">▾</span>
       </div>
+      <div id="projContent" class="section-body"></div>
     </div>
-  </div>
 
-  <!-- ── WHAT-IF VIEW ── -->
-  <div class="view" id="view-whatif">
-    <div id="whatifContent">
-      <div class="empty">
-        <div class="ei">🎯</div>
-        <p>Calculate first to explore what-if scenarios.</p>
-        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+    <!-- WHAT-IF SECTION -->
+    <div id="whatifSection" style="display:none">
+      <div class="section-divider" onclick="toggleSection('whatifContent','whatifChevron')">
+        <span>🎯 What-If Scenarios</span><span id="whatifChevron" class="chevron">▾</span>
       </div>
+      <div id="whatifContent" class="section-body"></div>
     </div>
-  </div>
 
-  <!-- ── TIPS VIEW ── -->
-  <div class="view" id="view-tips">
-    <div class="section-heading">Tips & Expert Insights</div>
-    <div class="section-sub">Wisdom from the leading voices in the FIRE movement and personal finance.</div>
-    <div id="tipsContent"></div>
-  </div>
+    <!-- TIPS SECTION -->
+    <div id="tipsSection">
+      <div class="section-divider" onclick="toggleSection('tipsContent','tipsChevron')">
+        <span>💡 Expert Tips</span><span id="tipsChevron" class="chevron">▸</span>
+      </div>
+      <div id="tipsContent" class="section-body" style="display:none"></div>
+    </div>
 
-  <!-- ── HISTORY VIEW ── -->
-  <div class="view" id="view-history">
-    <div class="section-heading">Your Progress Over Time</div>
-    <div class="section-sub">Every time you recalculate, FIREtrack saves a snapshot. Revisit monthly to watch your wealth grow.</div>
-    <div id="historyContent">
-      <div class="empty">
-        <div class="ei">📊</div>
-        <p>No history yet. Hit <strong>Calculate</strong> to record your first snapshot!</p>
-        <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
+    <!-- HISTORY SECTION -->
+    <div id="historySection">
+      <div class="section-divider" onclick="toggleSection('historyContent','historyChevron')">
+        <span>📊 Progress History</span><span id="historyChevron" class="chevron">▸</span>
+      </div>
+      <div id="historyContent" class="section-body" style="display:none">
+        <div class="empty">
+          <div class="ei">📊</div>
+          <p>No history yet. Hit <strong>Calculate</strong> to record your first snapshot!</p>
+        </div>
       </div>
     </div>
   </div>
@@ -896,10 +934,6 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 <nav class="mobile-nav">
   <button class="mn-btn" onclick="switchTab(this,'input')" data-view="input"><span class="ni">📝</span><span>Profile</span></button>
   <button class="mn-btn active" onclick="switchTab(this,'dashboard')" data-view="dashboard"><span class="ni">🔥</span><span>Dashboard</span></button>
-  <button class="mn-btn" onclick="switchTab(this,'projection')" data-view="projection"><span class="ni">📈</span><span>Forecast</span></button>
-  <button class="mn-btn" onclick="switchTab(this,'whatif')" data-view="whatif"><span class="ni">🎯</span><span>What-If</span></button>
-  <button class="mn-btn" onclick="switchTab(this,'tips')" data-view="tips"><span class="ni">💡</span><span>Tips</span></button>
-  <button class="mn-btn" onclick="switchTab(this,'history')" data-view="history"><span class="ni">📊</span><span>History</span></button>
 </nav>
 
 <!-- PERSISTENT FOOTER -->
@@ -924,6 +958,22 @@ function tt(title, body, tag) {
   document.getElementById('ttOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+// Safe tooltip trigger — reads from separate data attributes, zero JSON parsing
+function showTT(el) {
+  tt(
+    el.getAttribute('data-tt-t') || '',
+    el.getAttribute('data-tt-b') || '',
+    el.getAttribute('data-tt-g') || ''
+  );
+}
+// For dynamically-generated buttons where data is in separate attributes
+function showTTDynamic(el) {
+  tt(
+    el.getAttribute('data-tt-title') || '',
+    el.getAttribute('data-tt-body') || '',
+    el.getAttribute('data-tt-tag') || ''
+  );
+}
 function closeTT(e) { if (e.target === document.getElementById('ttOverlay')) closeTTBtn(); }
 function closeTTBtn() { document.getElementById('ttOverlay').classList.remove('open'); document.body.style.overflow = ''; }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTTBtn(); });
@@ -932,6 +982,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTTBtn()
 function toggleMode() {
   darkMode = !darkMode;
   document.body.classList.toggle('light-mode', !darkMode);
+  document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
   document.getElementById('modeToggle').classList.toggle('on', !darkMode);
   document.getElementById('modeLabel').textContent = darkMode ? 'Light mode' : 'Dark mode';
   if (calculated) setTimeout(renderCharts, 60);
@@ -960,10 +1011,15 @@ function switchTab(el, view) {
   showView(view);
 }
 function showView(v) {
+  // Only 2 real views now: input and dashboard
+  const target = (v === 'input') ? 'input' : 'dashboard';
   document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  if (v === 'tips') renderTips();
-  if (v === 'history') renderHistory();
+  document.getElementById('view-'+target).classList.add('active');
+  // Sync tab buttons
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll(`.tab[onclick*="'${target}'"]`).forEach(t => t.classList.add('active'));
+  document.querySelectorAll('.mn-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll(`.mn-btn[data-view="${target}"]`).forEach(b => b.classList.add('active'));
   window.scrollTo(0,0);
 }
 
@@ -1082,6 +1138,9 @@ function calculate() {
     }
   }
 
+  const activeFT = document.querySelector('.ft-btn.active');
+  const fireType = activeFT ? activeFT.dataset.ft : 'regular';
+
   state = { age,retireAge,ytf,hasP,youInc,partInc,totalInc,expenses,swr,
     k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pensionIncome,col,p401,pRoth,pHSA,pBrok,
     totalAssets,totalDebts,netWorth,totalInv,youInv,partInv,youAssets,partAssets,
@@ -1089,12 +1148,16 @@ function calculate() {
     coastNum,isCoast,rr,ss,pSS,totalSS,totalGuaranteedIncome,k401c,hsac,brokc,p401c,rothIraContrib,
     mortgage,stuLoans,carL,ccD,mortgageRate:gv('mortgageRate'),efund,
     totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate,
-    ssGapYears,ssGapSurcharge,ssStartAge };
+    ssGapYears,ssGapSurcharge,ssStartAge,fireType };
 
   calculated = true;
   saveInputs();
   addSnapshot(state);
   renderDash(); renderProj(); renderWhatIf();
+  // Reveal the collapsible sections in dashboard
+  document.getElementById('projSection').style.display = 'block';
+  document.getElementById('whatifSection').style.display = 'block';
+  renderHistory();
 }
 
 // ── DASHBOARD ──
@@ -1128,10 +1191,29 @@ function renderDash(){
     <div class="hero" id="heroCard">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:18px">
         <div style="flex:1;min-width:180px">
-          <div class="hero-label">🎯 Your FIRE Number</div>
+          <div class="hero-label" style="display:flex;align-items:center;gap:7px">
+            🎯 Your FIRE Number
+            <button class="ib" onclick="showTT(this)" data-tt-t="Your FIRE Number" data-tt-b="Your FIRE Number is the portfolio size at which your investments generate enough passive income to cover your living expenses forever — without ever needing to work again.<br><br><strong>Formula:</strong> Annual Expenses ÷ Safe Withdrawal Rate<br><strong>Example:</strong> $60,000/yr ÷ 4% = $1,500,000 FIRE Number<br><br>Social Security, pension, or other guaranteed income reduces this number — you only need your portfolio to cover the <em>gap</em> between expenses and guaranteed income.<br><br>All values shown in today's purchasing power (real, inflation-adjusted dollars)." data-tt-g="Your FIRE Number">i</button>
+          </div>
           <div class="hero-amount">${fmt(s.fireNum)}</div>
-          <div class="hero-sub">${s.swr*100}% SWR · ${fmt(s.expenses)}/yr expenses${s.totalGuaranteedIncome>0?' · '+fmt(s.totalGuaranteedIncome)+'/yr income offset':''} · all in today's dollars</div>
-          ${s.ssGapYears > 0 ? `<div style="display:flex;align-items:center;gap:7px;margin-top:8px;padding:7px 11px;background:rgba(255,107,43,0.08);border:1px solid rgba(255,107,43,0.2);border-radius:8px;font-size:0.75rem;color:var(--fire-amber)">⏳ <strong>SS gap:</strong> ${s.ssGapYears} yrs before SS/pension starts (age ${s.ssStartAge}) — adds ${fmt(s.ssGapSurcharge)} to FIRE Number</div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <div class="hero-sub">${s.swr*100}% SWR · ${fmt(s.expenses)}/yr expenses${s.totalGuaranteedIncome>0?' · '+fmt(s.totalGuaranteedIncome)+'/yr income offset':''} · all in today's dollars</div>
+          </div>
+          ${(()=>{
+            const ftMeta = {
+              lean:    {emoji:'🥗', label:'Lean FIRE',    color:'#4ADE80', desc:`Your goal is Lean FIRE — frugal independence under $40K/yr. Your FIRE Number is lower, but leaves little margin. Every dollar saved matters more.`},
+              regular: {emoji:'🔥', label:'Regular FIRE', color:'#FF6B2B', desc:`Your goal is Regular FIRE — the classic $40–80K/yr balanced lifestyle. You&#39;ve got the most community data and research behind this target.`},
+              fat:     {emoji:'🎩', label:'Fat FIRE',     color:'#FFB347', desc:`Your goal is Fat FIRE — $100K+/yr in retirement. You&#39;ll need a larger number but gain maximum lifestyle flexibility and spending cushion.`},
+              coast:   {emoji:'⛵', label:'Coast FIRE',   color:'#2DD4BF', desc:`Your goal is Coast FIRE — accumulate enough now, then stop contributing and let compounding do the rest while you work a lower-stress job. See the Coast Number card below.`},
+              barista: {emoji:'☕', label:'Barista FIRE', color:'#A78BFA', desc:`Your goal is Barista FIRE — reach partial FI, then cover remaining expenses with part-time or passion work (often chosen for employer health benefits before Medicare at 65).`},
+            };
+            const ft = ftMeta[s.fireType] || ftMeta.regular;
+            return `<div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;margin-bottom:6px;padding:5px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;font-size:0.72rem;color:${ft.color};font-weight:600">
+              ${ft.emoji} ${ft.label}
+              <button class="ib" style="margin-left:2px" data-tt-title="${ft.label}" data-tt-body="${ft.desc}" data-tt-tag="FIRE Type" onclick="showTTDynamic(this)">i</button>
+            </div>`;
+          })()}
+          ${s.ssGapYears > 0 ? `<div style="display:flex;align-items:center;gap:7px;margin-top:4px;padding:7px 11px;background:rgba(255,107,43,0.08);border:1px solid rgba(255,107,43,0.2);border-radius:8px;font-size:0.75rem;color:var(--fire-amber)">⏳ <strong>SS gap:</strong> ${s.ssGapYears} yrs before SS/pension starts (age ${s.ssStartAge}) — adds ${fmt(s.ssGapSurcharge)} to FIRE Number</div>` : ''}
           <div class="milestones">${ms.map(m=>`<div class="badge ${m.e?'earned':'locked'}">${m.e?'✓':'○'} ${m.l}</div>`).join('')}</div>
         </div>
         <div style="text-align:center;flex-shrink:0">
@@ -1143,18 +1225,28 @@ function renderDash(){
             </div>
           </div>
           <div style="font-size:0.73rem;color:var(--text-muted)">${fmt(s.totalInv)} invested</div>
+          <button class="ib" style="margin-top:4px" onclick="showTT(this)" data-tt-t="Progress Gauge" data-tt-b="This gauge shows your <strong>investable portfolio</strong> as a percentage of your FIRE Number.<br><br><strong>Investable assets counted:</strong> 401k, Roth IRA, Traditional IRA, HSA, taxable brokerage, and cash above your emergency fund.<br><br><strong>Not counted:</strong> Home equity, 529 college savings — these are real assets but not accessible for retirement spending.<br><br>100% = Financial Independence achieved at your target spending level." data-tt-g="Progress to FIRE">i</button>
         </div>
       </div>
       <div class="hero-grid">
-        <div><div class="h-stat-label">Projected FIRE Age</div><div class="h-stat-val o">${fyd}</div></div>
-        <div><div class="h-stat-label">Net Worth</div><div class="h-stat-val g">${fmt(s.netWorth)}</div></div>
-        <div><div class="h-stat-label">Annual Savings</div><div class="h-stat-val t">${fmt(s.totalC)}</div></div>
+        <div>
+          <div class="h-stat-label" style="display:flex;align-items:center;gap:5px">Projected FIRE Age <button class="ib" onclick="showTT(this)" data-tt-t="Projected FIRE Age" data-tt-b="The age at which your portfolio is projected to reach your FIRE Number, assuming:<br><br>• Constant real return (inflation-adjusted) each year<br>• Contributions continue at your current rate until then<br>• Spending begins immediately at retirement<br><br><strong>Important:</strong> This uses a straight-line return assumption — no market crashes, no sequence-of-returns risk. Real timelines vary. A 10-year Monte Carlo range is typically ±3–5 years around this estimate.<br><br>If it shows &quot;Beyond 60yr range,&quot; try increasing contributions, reducing expenses, or adjusting your return assumption." data-tt-g="Projected FIRE Age">i</button></div>
+          <div class="h-stat-val o">${fyd}</div>
+        </div>
+        <div>
+          <div class="h-stat-label" style="display:flex;align-items:center;gap:5px">Net Worth <button class="ib" onclick="showTT(this)" data-tt-t="Net Worth" data-tt-b="<strong>Net Worth = Total Assets − Total Debts</strong><br><br>Assets include: all investment accounts, home market value, and cash.<br>Debts include: mortgage, student loans, car loans, and credit card balances.<br><br>A negative net worth is common and normal early in life — especially with a mortgage or student loans. What matters most is the <em>trajectory</em>: is it growing each year?<br><br>Track this monthly in the History tab to see your progress over time." data-tt-g="Net Worth">i</button></div>
+          <div class="h-stat-val g">${fmt(s.netWorth)}</div>
+        </div>
+        <div>
+          <div class="h-stat-label" style="display:flex;align-items:center;gap:5px">Annual Savings <button class="ib" onclick="showTT(this)" data-tt-t="Annual Savings" data-tt-b="The total you invest each year across all accounts:<br><br>• 401k contributions (yours + any employer match you enter)<br>• Roth IRA contributions<br>• HSA contributions<br>• Taxable brokerage contributions<br><br>This is the fuel for your FIRE journey. Increasing this number — even by $100/month — has a compounding effect that dramatically shortens your timeline." data-tt-g="Annual Savings">i</button></div>
+          <div class="h-stat-val t">${fmt(s.totalC)}</div>
+        </div>
       </div>
     </div>
 
     <div class="grid-2" style="margin-bottom:14px">
       <div class="card">
-        <div class="card-title"><span class="dot"></span> Savings Rate</div>
+        <div class="card-title" style="display:flex;align-items:center;gap:6px"><span class="dot"></span> Savings Rate <button class="ib" onclick="showTT(this)" data-tt-t="Savings Rate" data-tt-b="Your savings rate is the percentage of gross income you invest each year across all accounts (401k, Roth IRA, HSA, brokerage).<br><br><strong>Why it matters more than anything else:</strong><br>Savings rate simultaneously determines how fast your portfolio grows <em>and</em> how little you need to retire on. A 50% savings rate means you can retire in ~17 years from zero (Mr. Money Mustache).<br><br><strong>Targets by FIRE type:</strong><br>• Lean FIRE: 30%+ (lower expenses help)<br>• Regular FIRE: 40%+<br>• Fat FIRE: 50%+ (higher number requires more fuel)<br>• Barista/Coast: 20–30% until Coast Number is hit<br><br>The single most powerful lever in your FIRE plan — more impactful than investment returns." data-tt-g="Savings Rate">i</button></div>
         <div style="font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1;margin-bottom:3px">${srP}%</div>
         <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:9px">of gross income invested</div>
         <div class="srm-track"><div class="srm-fill" style="width:${Math.min(100,srP)}%">${srP>12?srP+'%':''}</div></div>
@@ -1163,7 +1255,7 @@ function renderDash(){
         <div class="itip"><span class="e">💡</span>${srP>=50?'Outstanding! 50% savings rate = FI in ~17 years from zero (MMM).':srP>=25?'Solid rate. Reaching 50% could cut your timeline roughly in half.':'Even 1% more per paycheck compounds dramatically — automate it!'}</div>
       </div>
       <div class="card">
-        <div class="card-title"><span class="dot"></span> Coast FIRE</div>
+        <div class="card-title" style="display:flex;align-items:center;gap:6px"><span class="dot"></span> Coast FIRE <button class="ib" onclick="showTT(this)" data-tt-t="Coast FIRE Number" data-tt-b="Your <strong>Coast Number</strong> is the portfolio balance you need today so that — even if you never invest another dollar — compounding alone grows it to your full FIRE Number by retirement age.<br><br><strong>Formula:</strong> FIRE Number ÷ (1 + real return)^years to retirement<br><br>Once you hit your Coast Number, you can &quot;coast&quot; — covering only living expenses with earned income while your investments grow untouched.<br><br><strong>Why it matters:</strong> Coast FIRE is often achievable 10–15 years before full FIRE, giving you the option to downshift to lower-stress or part-time work much sooner. It's a powerful intermediate milestone." data-tt-g="Coast FIRE">i</button></div>
         <div style="font-size:0.81rem;color:var(--text-muted);line-height:1.5">Could you stop contributing today and coast to FIRE via compounding alone?</div>
         <div class="coast-hi">
           <div class="coast-label">Coast Number</div>
@@ -1486,9 +1578,188 @@ function dismissDisclaimer() {
 }
 
 // ── EXPORT ──
-function exportPDF(){ window.print(); }
+// ── SECTION TOGGLE ──
+function toggleSection(contentId, chevronId) {
+  const el = document.getElementById(contentId);
+  const ch = document.getElementById(chevronId);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if (ch) ch.textContent = isOpen ? '▸' : '▾';
+  // Re-render charts when projections are opened
+  if (!isOpen && contentId === 'projContent') setTimeout(renderCharts, 100);
+}
 
-// ── LOCALSTORAGE KEYS ──
+// ── EXPORT MENU ──
+function toggleExportMenu() {
+  document.getElementById('exportMenu').classList.toggle('open');
+}
+function closeExportMenu() {
+  document.getElementById('exportMenu').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('exportWrap')?.contains(e.target)) closeExportMenu();
+});
+
+// ── EXPORTS ──
+function exportPDF() { window.print(); }
+
+function exportCSV() {
+  if (!calculated) { alert('Calculate your results first.'); return; }
+  const s = state;
+  const rows = [
+    ['FIREtrack Export', new Date().toLocaleDateString()],
+    [],
+    ['METRIC', 'VALUE'],
+    ['Age', s.age],
+    ['Target Retirement Age', s.retireAge],
+    ['FIRE Type', s.fireType],
+    ['Annual Income', s.totalInc],
+    ['Annual Expenses', s.expenses],
+    ['Annual Savings', s.totalC],
+    ['Savings Rate', (s.savRate*100).toFixed(1)+'%'],
+    ['FIRE Number', s.fireNum.toFixed(0)],
+    ['Coast FIRE Number', s.coastNum.toFixed(0)],
+    ['Investable Portfolio', s.totalInv.toFixed(0)],
+    ['Net Worth', s.netWorth.toFixed(0)],
+    ['Progress to FIRE', (s.progress*100).toFixed(1)+'%'],
+    ['Projected FIRE Age', s.fireYear !== null ? s.age + s.fireYear : 'Beyond range'],
+    ['Safe Withdrawal Rate', (s.swr*100)+'%'],
+    ['Real Return Rate', (s.rr*100).toFixed(1)+'%'],
+    ['Social Security (Annual)', s.totalSS],
+    ['Total Debts', s.totalDebts],
+    [],
+    ['PORTFOLIO BREAKDOWN', ''],
+    ['Traditional 401k', s.k401],
+    ['Roth 401k', s.roth401k||0],
+    ['Roth IRA', s.roth],
+    ['HSA', s.hsa],
+    ['Brokerage', s.brok],
+    ['Cash', s.cash],
+    ['Home Value', s.homeVal],
+  ];
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `FIREtrack-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportTXT() {
+  if (!calculated) { alert('Calculate your results first.'); return; }
+  const s = state;
+  const fmt2 = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+  const fyd = s.fireYear !== null ? `Age ${s.age + s.fireYear} (~${s.fireYear} yrs away)` : 'Beyond 60yr range';
+  const txt = `
+FIREtrack — Financial Independence Summary
+Generated: ${new Date().toLocaleDateString()}
+${'─'.repeat(48)}
+
+FIRE TYPE GOAL:   ${s.fireType.toUpperCase()} FIRE
+FIRE NUMBER:      ${fmt2(s.fireNum)}
+PROGRESS:         ${Math.round(s.progress*100)}% (${fmt2(s.totalInv)} invested)
+PROJECTED FIRE:   ${fyd}
+COAST NUMBER:     ${fmt2(s.coastNum)}${s.isCoast ? ' ✓ REACHED!' : ''}
+
+INCOME & SAVINGS
+  Annual Income:     ${fmt2(s.totalInc)}
+  Annual Expenses:   ${fmt2(s.expenses)}
+  Annual Savings:    ${fmt2(s.totalC)}
+  Savings Rate:      ${Math.round(s.savRate*100)}%
+
+NET WORTH
+  Total Assets:  ${fmt2(s.totalAssets)}
+  Total Debts:   ${fmt2(s.totalDebts)}
+  Net Worth:     ${fmt2(s.netWorth)}
+
+ASSUMPTIONS
+  Safe Withdrawal Rate: ${s.swr*100}%
+  Real Return Rate:     ${(s.rr*100).toFixed(1)}%
+  SS / Pension Income:  ${fmt2(s.totalGuaranteedIncome)}/yr
+
+${'─'.repeat(48)}
+For educational purposes only — not financial advice.
+Consult a licensed financial advisor before making decisions.
+`.trim();
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `FIREtrack-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+}
+
+
+
+function exportEmail() {
+  if (!calculated) { alert('Calculate your results first.'); return; }
+  const s = state;
+  const fmt2 = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
+  const fyd = s.fireYear !== null ? `Age ${s.age + s.fireYear} (~${s.fireYear} yrs away)` : 'Beyond 60yr range';
+
+  const subject = `My FIREtrack Summary — ${fmt2(s.fireNum)} FIRE Number`;
+  const body = `FIREtrack — Financial Independence Summary
+Generated: ${new Date().toLocaleDateString()}
+${'='.repeat(48)}
+
+FIRE TYPE GOAL:   ${s.fireType.toUpperCase()} FIRE
+FIRE NUMBER:      ${fmt2(s.fireNum)}
+PROGRESS:         ${Math.round(s.progress*100)}% (${fmt2(s.totalInv)} invested)
+PROJECTED FIRE:   ${fyd}
+COAST NUMBER:     ${fmt2(s.coastNum)}${s.isCoast ? ' - REACHED!' : ''}
+
+INCOME & SAVINGS
+  Annual Income:     ${fmt2(s.totalInc)}
+  Annual Expenses:   ${fmt2(s.expenses)}
+  Annual Savings:    ${fmt2(s.totalC)}
+  Savings Rate:      ${Math.round(s.savRate*100)}%
+
+NET WORTH
+  Total Assets:  ${fmt2(s.totalAssets)}
+  Total Debts:   ${fmt2(s.totalDebts)}
+  Net Worth:     ${fmt2(s.netWorth)}
+
+ASSUMPTIONS
+  Safe Withdrawal Rate: ${s.swr*100}%
+  Real Return Rate:     ${(s.rr*100).toFixed(1)}%
+  SS / Pension Income:  ${fmt2(s.totalGuaranteedIncome)}/yr
+
+${'='.repeat(48)}
+For educational purposes only — not financial advice.
+Calculate your own: https://firetrack.app`;
+
+  // Try mailto first (opens mail app)
+  const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  // mailto URLs have a ~2000 char practical limit in many clients
+  // If too long, fall back to clipboard
+  if (mailto.length < 2000) {
+    window.location.href = mailto;
+  } else {
+    navigator.clipboard.writeText(body).then(() => {
+      showEmailCopiedToast();
+    }).catch(() => {
+      // Final fallback: open a mailto with truncated body + note
+      const shortBody = body.slice(0, 1200) + '\n\n[Full summary truncated — paste from clipboard]';
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
+    });
+  }
+}
+
+function showEmailCopiedToast() {
+  const toast = document.createElement('div');
+  toast.textContent = '✅ Summary copied to clipboard — paste into your email';
+  toast.style.cssText = `
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+    background:var(--surface); border:1px solid var(--border);
+    color:var(--text); padding:12px 20px; border-radius:10px;
+    font-family:'DM Sans',sans-serif; font-size:0.85rem;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3); z-index:9999;
+    animation: ttIn 0.2s ease;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
 const LS_INPUTS = 'firetrack_inputs_v1';
 const LS_HISTORY = 'firetrack_history_v1';
 
@@ -1745,6 +2016,15 @@ window.exportPDF = exportPDF;
 window.clearHistory = clearHistory;
 window.deleteSnapshot = deleteSnapshot;
 window.dismissDisclaimer = dismissDisclaimer;
+window.exportEmail = exportEmail;
+window.showTT = showTT;
+window.showTTDynamic = showTTDynamic;
+window.toggleSection = toggleSection;
+window.toggleExportMenu = toggleExportMenu;
+window.closeExportMenu = closeExportMenu;
+window.exportPDF = exportPDF;
+window.exportCSV = exportCSV;
+window.exportTXT = exportTXT;
 </script>
 
 </body>
