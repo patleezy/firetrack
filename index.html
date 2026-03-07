@@ -59,6 +59,12 @@
   --text-muted: #6B6560;
   --text-dim: #9A9590;
   --border: #E0D8CC;
+  /* Darker values for WCAG AA contrast on light backgrounds */
+  --fire-amber: #B8760A;
+  --fire-orange: #D4510E;
+  --green: #16A34A;
+  --teal: #0D9488;
+  --partner: #7C3AED;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html { scroll-behavior:smooth; }
@@ -286,12 +292,8 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 .divider { height:1px; background:var(--border); margin:16px 0; }
 
 /* TOGGLE */
-.toggle-wrap { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
-.toggle { width:38px; height:21px; background:var(--surface3); border-radius:11px; position:relative; transition:background 0.2s; border:1px solid var(--border); flex-shrink:0; }
-.toggle.on { background:var(--fire-orange); }
-.toggle::after { content:''; position:absolute; width:15px; height:15px; background:white; border-radius:50%; top:2px; left:2px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.3); }
-.toggle.on::after { transform:translateX(17px); }
-.toggle-label { font-size:0.8rem; color:var(--text-muted); }
+.mode-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:5px 9px; font-size:1.1rem; cursor:pointer; line-height:1; transition:border-color 0.2s; }
+.mode-btn:hover { border-color:var(--fire-orange); }
 
 /* PARTNER TOGGLE BANNER */
 .partner-banner {
@@ -484,10 +486,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       </div>
     </div>
     <div class="header-actions">
-      <div class="toggle-wrap" onclick="toggleMode()">
-        <div class="toggle" id="modeToggle"></div>
-        <span class="toggle-label" id="modeLabel">Light mode</span>
-      </div>
+      <button class="mode-btn" id="modeBtn" onclick="toggleMode()" title="Toggle light/dark mode">🌙</button>
       <div class="export-wrap" id="exportWrap">
         <button class="btn btn-ghost" onclick="toggleExportMenu()">⬇ Export</button>
         <div class="export-menu" id="exportMenu">
@@ -937,12 +936,57 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 </nav>
 
 <!-- PERSISTENT FOOTER -->
-<footer style="padding:14px 20px 100px;border-top:1px solid var(--border);margin-top:8px">
-  <p style="font-size:0.7rem;color:var(--text-dim);line-height:1.6;text-align:center;max-width:860px;margin:0 auto">
-    <strong style="color:var(--text-muted)">📋 For educational &amp; planning purposes only — not financial advice.</strong>
-    FIREtrack uses simplified models with constant returns, no market volatility, and approximate tax estimates. Real outcomes will differ. Consult a licensed financial advisor, CPA, or tax professional before making retirement or investment decisions.
-    <strong style="color:var(--text-dim)">Your data never leaves your browser.</strong>
-  </p>
+<footer style="padding:20px 20px 100px;border-top:1px solid var(--border);margin-top:8px">
+
+  <div style="max-width:860px;margin:0 auto">
+
+    <!-- Privacy trust block -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:1.1rem">🔒</span>
+        <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">Your Data Never Leaves Your Device</span>
+      </div>
+      <p style="font-size:0.73rem;color:var(--text-muted);line-height:1.65;margin:0 0 10px">
+        FIREtrack runs entirely in your browser — no accounts, no servers, no cloud sync. Everything you enter is stored only in your browser's local storage and is never transmitted anywhere.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="display:flex;align-items:flex-start;gap:7px;font-size:0.7rem;color:var(--text-muted);line-height:1.5">
+          <span style="color:var(--green);font-weight:700;flex-shrink:0">✓</span>
+          <span>No account or login required</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:7px;font-size:0.7rem;color:var(--text-muted);line-height:1.5">
+          <span style="color:var(--green);font-weight:700;flex-shrink:0">✓</span>
+          <span>No data sent to any server</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:7px;font-size:0.7rem;color:var(--text-muted);line-height:1.5">
+          <span style="color:var(--green);font-weight:700;flex-shrink:0">✓</span>
+          <span>No ads, no tracking, no analytics</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:7px;font-size:0.7rem;color:var(--text-muted);line-height:1.5">
+          <span style="color:var(--green);font-weight:700;flex-shrink:0">✓</span>
+          <span>No API keys or credentials stored</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:7px;font-size:0.7rem;color:var(--text-muted);line-height:1.5">
+          <span style="color:var(--green);font-weight:700;flex-shrink:0">✓</span>
+          <span>Open to inspect — single HTML file</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:7px;font-size:0.7rem;color:var(--text-muted);line-height:1.5">
+          <span style="color:var(--green);font-weight:700;flex-shrink:0">✓</span>
+          <span>Security headers on every request</span>
+        </div>
+      </div>
+      <div style="margin-top:11px;padding-top:11px;border-top:1px solid var(--border);font-size:0.68rem;color:var(--text-dim);line-height:1.55">
+        💡 <strong style="color:var(--text-muted)">Safer than Mint, Personal Capital, or any app that requires an account</strong> — those services store your financial data on their servers. FIREtrack stores nothing anywhere except your own device.
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <p style="font-size:0.68rem;color:var(--text-dim);line-height:1.6;text-align:center">
+      <strong style="color:var(--text-muted)">📋 For educational &amp; planning purposes only — not financial advice.</strong>
+      FIREtrack uses simplified models with constant returns, no market volatility, and approximate tax estimates. Real outcomes will differ. Always consult a licensed financial advisor, CPA, or tax professional before making retirement or investment decisions.
+    </p>
+
+  </div>
 </footer>
 <script>
 // ── STATE ──
@@ -983,8 +1027,7 @@ function toggleMode() {
   darkMode = !darkMode;
   document.body.classList.toggle('light-mode', !darkMode);
   document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
-  document.getElementById('modeToggle').classList.toggle('on', !darkMode);
-  document.getElementById('modeLabel').textContent = darkMode ? 'Light mode' : 'Dark mode';
+  document.getElementById('modeBtn').textContent = darkMode ? '🌙' : '☀️';
   if (calculated) setTimeout(renderCharts, 60);
 }
 
@@ -1244,6 +1287,36 @@ function renderDash(){
       </div>
     </div>
 
+    ${(()=>{
+      const swr = s.swr || 0.04;
+      const tiers = [
+        { key:'lean',    emoji:'🥗', label:'Lean',    spend:30000,  range:'~$30K/yr' },
+        { key:'regular', emoji:'🔥', label:'Regular', spend:60000,  range:'~$60K/yr' },
+        { key:'fat',     emoji:'🎩', label:'Fat',     spend:120000, range:'~$120K/yr' },
+      ];
+      const fmtK = n => n >= 1000000 ? `$${(n/1000000).toFixed(1)}M` : `$${Math.round(n/1000)}K`;
+      const cols = tiers.map(t => {
+        const num = Math.round(t.spend / swr);
+        const pct = Math.min(100, Math.round(s.totalInv / num * 100));
+        const isSelected = t.key === s.fireType;
+        return `<div style="flex:1;text-align:center;padding:10px 6px;border-radius:10px;background:${isSelected?'rgba(255,107,43,0.08)':'transparent'};border:1px solid ${isSelected?'var(--fire-orange)':'var(--border)'};">
+          <div style="font-size:1rem;margin-bottom:3px">${t.emoji}</div>
+          <div style="font-size:0.62rem;color:var(--text-muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px">${t.label}</div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">${t.range}</div>
+          <div style="font-size:0.85rem;font-weight:700;color:${isSelected?'var(--fire-orange)':'var(--text)'};margin-bottom:3px">${fmtK(num)}</div>
+          <div style="font-size:0.65rem;color:${pct>=100?'var(--green)':'var(--text-muted)'};">${pct>=100?'✓ Reached!':pct+'% there'}</div>
+        </div>`;
+      }).join('');
+      return `<div class="card" style="margin-bottom:14px;padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+          <span class="dot" style="background:var(--fire-orange)"></span>
+          <span style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)">FIRE Spectrum</span>
+          <span style="font-size:0.67rem;color:var(--text-dim)">· at ${s.swr*100}% SWR · your goal highlighted</span>
+        </div>
+        <div style="display:flex;gap:8px">${cols}</div>
+      </div>`;
+    })()}
+
     <div class="grid-2" style="margin-bottom:14px">
       <div class="card">
         <div class="card-title" style="display:flex;align-items:center;gap:6px"><span class="dot"></span> Savings Rate <button class="ib" onclick="showTT(this)" data-tt-t="Savings Rate" data-tt-b="Your savings rate is the percentage of gross income you invest each year across all accounts (401k, Roth IRA, HSA, brokerage).<br><br><strong>Why it matters more than anything else:</strong><br>Savings rate simultaneously determines how fast your portfolio grows <em>and</em> how little you need to retire on. A 50% savings rate means you can retire in ~17 years from zero (Mr. Money Mustache).<br><br><strong>Targets by FIRE type:</strong><br>• Lean FIRE: 30%+ (lower expenses help)<br>• Regular FIRE: 40%+<br>• Fat FIRE: 50%+ (higher number requires more fuel)<br>• Barista/Coast: 20–30% until Coast Number is hit<br><br>The single most powerful lever in your FIRE plan — more impactful than investment returns." data-tt-g="Savings Rate">i</button></div>
@@ -1378,8 +1451,14 @@ function hc(label,val,ok,note){
 // ── GAUGE ──
 function drawGauge(progress){
   const c=document.getElementById('gaugeCanvas'); if(!c) return;
-  const ctx=c.getContext('2d'), cx=85, cy=90, r=70;
-  ctx.clearRect(0,0,170,95);
+  const dpr=window.devicePixelRatio||1;
+  const W=170, H=95;
+  c.width=W*dpr; c.height=H*dpr;
+  c.style.width=W+'px'; c.style.height=H+'px';
+  const ctx=c.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=85, cy=90, r=70;
+  ctx.clearRect(0,0,W,H);
   ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,2*Math.PI); ctx.lineWidth=15;
   ctx.strokeStyle=darkMode?'#2A2A2A':'#E0D8CC'; ctx.lineCap='round'; ctx.stroke();
   const p=Math.min(progress,1);
@@ -1401,7 +1480,7 @@ function renderProj(){
   document.getElementById('projContent').innerHTML=`
     <div class="section-heading">Portfolio Growth Forecast</div>
     <div class="section-sub">${rrDisplay}% real return (inflation-adjusted) · ${fmt(s.totalC)}/yr contributions · all values in today's dollars</div>
-    <div class="itip" style="margin-bottom:14px"><span class="e">📌</span>The chart shows <strong>accumulation phase</strong> until your FIRE year, then switches to <strong>drawdown phase</strong> — contributions stop and ${fmt(s.adjExp)}/yr is withdrawn. A flat or gently declining line post-FIRE is healthy; a steep drop means revisiting your SWR or expenses.</div>
+    <div class="itip" style="margin-bottom:14px;line-height:1.6"><span class="e">📌</span><span>The chart shows <strong style="display:inline">accumulation phase</strong> until your FIRE year, then switches to <strong style="display:inline">drawdown phase</strong> — contributions stop and ${fmt(s.adjExp)}/yr is withdrawn. A flat or gently declining line post-FIRE is healthy; a steep drop means revisiting your SWR or expenses.</span></div>
     <div class="card" style="margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;flex-wrap:wrap;gap:8px">
         <div class="card-title" style="margin-bottom:0"><span class="dot"></span> Net Worth Trajectory</div>
@@ -1646,101 +1725,76 @@ function exportCSV() {
   a.click();
 }
 
-function exportTXT() {
-  if (!calculated) { alert('Calculate your results first.'); return; }
-  const s = state;
+function buildSummaryText(s) {
   const fmt2 = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
   const fyd = s.fireYear !== null ? `Age ${s.age + s.fireYear} (~${s.fireYear} yrs away)` : 'Beyond 60yr range';
-  const txt = `
-FIREtrack — Financial Independence Summary
-Generated: ${new Date().toLocaleDateString()}
-${'─'.repeat(48)}
+  const div = '-'.repeat(44);
+  const pct = n => Math.round(n * 100) + '%';
 
-FIRE TYPE GOAL:   ${s.fireType.toUpperCase()} FIRE
-FIRE NUMBER:      ${fmt2(s.fireNum)}
-PROGRESS:         ${Math.round(s.progress*100)}% (${fmt2(s.totalInv)} invested)
-PROJECTED FIRE:   ${fyd}
-COAST NUMBER:     ${fmt2(s.coastNum)}${s.isCoast ? ' ✓ REACHED!' : ''}
+  return [
+    'FIREtrack - Financial Independence Summary',
+    `Generated: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}`,
+    div,
+    '',
+    'YOUR FIRE PICTURE',
+    `  Goal:              ${s.fireType.charAt(0).toUpperCase()+s.fireType.slice(1)} FIRE`,
+    `  FIRE Number:       ${fmt2(s.fireNum)}`,
+    `  Portfolio Today:   ${fmt2(s.totalInv)} (${Math.round(s.progress*100)}% of goal)`,
+    `  Projected FIRE:    ${fyd}`,
+    `  Coast FIRE Number: ${fmt2(s.coastNum)}${s.isCoast ? ' -- REACHED!' : ''}`,
+    s.totalGuaranteedIncome > 0 ? `  SS + Pension:      ${fmt2(s.totalGuaranteedIncome)}/yr (reduces FIRE Number)` : '',
+    '',
+    'INCOME & SAVINGS',
+    `  Annual Income:     ${fmt2(s.totalInc)}`,
+    `  Annual Expenses:   ${fmt2(s.expenses)}`,
+    `  Annual Savings:    ${fmt2(s.totalC)}`,
+    `  Savings Rate:      ${Math.round(s.savRate*100)}%`,
+    '',
+    'NET WORTH',
+    `  Total Assets:      ${fmt2(s.totalAssets)}`,
+    `  Total Debts:       ${fmt2(s.totalDebts)}`,
+    `  Net Worth:         ${fmt2(s.netWorth)}`,
+    '',
+    'ASSUMPTIONS',
+    `  Safe Withdrawal Rate:  ${s.swr*100}%`,
+    `  Real Return Rate:      ${(s.rr*100).toFixed(1)}% (inflation-adjusted)`,
+    `  Retirement Tax Rate:   ${Math.round(s.retireTaxRate*100)}%`,
+    '',
+    div,
+    'For educational purposes only -- not financial advice.',
+    'Always consult a licensed financial advisor or CPA',
+    'before making retirement or investment decisions.',
+    '',
+    'Calculate your own: https://firetrack-six.vercel.app',
+  ].filter(l => l !== null).join('\n');
+}
 
-INCOME & SAVINGS
-  Annual Income:     ${fmt2(s.totalInc)}
-  Annual Expenses:   ${fmt2(s.expenses)}
-  Annual Savings:    ${fmt2(s.totalC)}
-  Savings Rate:      ${Math.round(s.savRate*100)}%
-
-NET WORTH
-  Total Assets:  ${fmt2(s.totalAssets)}
-  Total Debts:   ${fmt2(s.totalDebts)}
-  Net Worth:     ${fmt2(s.netWorth)}
-
-ASSUMPTIONS
-  Safe Withdrawal Rate: ${s.swr*100}%
-  Real Return Rate:     ${(s.rr*100).toFixed(1)}%
-  SS / Pension Income:  ${fmt2(s.totalGuaranteedIncome)}/yr
-
-${'─'.repeat(48)}
-For educational purposes only — not financial advice.
-Consult a licensed financial advisor before making decisions.
-`.trim();
-  const blob = new Blob([txt], {type:'text/plain'});
+function exportTXT() {
+  if (!calculated) { alert('Calculate your results first.'); return; }
+  const txt = buildSummaryText(state);
+  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `FIREtrack-${new Date().toISOString().slice(0,10)}.txt`;
   a.click();
 }
 
-
-
 function exportEmail() {
   if (!calculated) { alert('Calculate your results first.'); return; }
   const s = state;
   const fmt2 = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
-  const fyd = s.fireYear !== null ? `Age ${s.age + s.fireYear} (~${s.fireYear} yrs away)` : 'Beyond 60yr range';
+  const subject = `My FIREtrack Summary - ${fmt2(s.fireNum)} FIRE Number`;
+  const body = buildSummaryText(s);
 
-  const subject = `My FIREtrack Summary — ${fmt2(s.fireNum)} FIRE Number`;
-  const body = `FIREtrack — Financial Independence Summary
-Generated: ${new Date().toLocaleDateString()}
-${'='.repeat(48)}
-
-FIRE TYPE GOAL:   ${s.fireType.toUpperCase()} FIRE
-FIRE NUMBER:      ${fmt2(s.fireNum)}
-PROGRESS:         ${Math.round(s.progress*100)}% (${fmt2(s.totalInv)} invested)
-PROJECTED FIRE:   ${fyd}
-COAST NUMBER:     ${fmt2(s.coastNum)}${s.isCoast ? ' - REACHED!' : ''}
-
-INCOME & SAVINGS
-  Annual Income:     ${fmt2(s.totalInc)}
-  Annual Expenses:   ${fmt2(s.expenses)}
-  Annual Savings:    ${fmt2(s.totalC)}
-  Savings Rate:      ${Math.round(s.savRate*100)}%
-
-NET WORTH
-  Total Assets:  ${fmt2(s.totalAssets)}
-  Total Debts:   ${fmt2(s.totalDebts)}
-  Net Worth:     ${fmt2(s.netWorth)}
-
-ASSUMPTIONS
-  Safe Withdrawal Rate: ${s.swr*100}%
-  Real Return Rate:     ${(s.rr*100).toFixed(1)}%
-  SS / Pension Income:  ${fmt2(s.totalGuaranteedIncome)}/yr
-
-${'='.repeat(48)}
-For educational purposes only — not financial advice.
-Calculate your own: https://firetrack.app`;
-
-  // Try mailto first (opens mail app)
   const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-  // mailto URLs have a ~2000 char practical limit in many clients
-  // If too long, fall back to clipboard
-  if (mailto.length < 2000) {
+  if (mailto.length < 1900) {
     window.location.href = mailto;
   } else {
     navigator.clipboard.writeText(body).then(() => {
       showEmailCopiedToast();
     }).catch(() => {
-      // Final fallback: open a mailto with truncated body + note
-      const shortBody = body.slice(0, 1200) + '\n\n[Full summary truncated — paste from clipboard]';
+      const shortBody = body.split('\n').slice(0, 20).join('\n') + '\n\n[See full summary - copied to clipboard]';
       window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
     });
   }
