@@ -27,6 +27,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='g' cx='50%' cy='80%' r='60%'><stop offset='0%' stop-color='%23FFB347'/><stop offset='50%' stop-color='%23FF6B2B'/><stop offset='100%' stop-color='%23FF4500'/></radialGradient></defs><path d='M50 5 C50 5 70 25 68 42 C66 55 58 58 62 68 C65 75 72 76 70 85 C67 95 50 98 35 90 C20 82 18 68 25 58 C30 50 28 42 32 35 C36 28 38 35 40 42 C42 49 40 56 45 60 C48 63 52 60 53 55 C55 48 48 35 50 5Z' fill='url(%23g)'/><path d='M50 45 C50 45 58 52 56 60 C54 66 48 68 50 75 C51 79 55 80 53 85 C51 89 44 90 40 86 C36 82 37 76 41 72 C43 69 42 65 44 62 C46 59 47 62 48 65 C49 67 51 66 51 63 C52 59 48 52 50 45Z' fill='%23FFE066' opacity='0.8'/></svg>">
 <!-- Tell browser/OS this page manages its own dark mode -->
 <meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#1A1714" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FAF8F4" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FIREtrack">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -656,7 +661,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner 401(k) Annual Contribution</label>
-                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution" data-tt-b="How much your partner contributes annually including employer match. The 2024 employee limit is $23,000 ($30,500 if 50+). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution" data-tt-b="How much your partner contributes annually including employer match. The 2025 employee limit is $23,500 ($31,000 if 50+, $34,750 if 60-63). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401kContrib" placeholder="0"></div>
               </div>
               <div class="form-group">
@@ -666,7 +671,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner HSA</label>
-                <button class="ib" onclick="showTT(this)" data-tt-t="Partner HSA" data-tt-b="If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The family contribution limit is $8,300 in 2024 — invest it in index funds for the ultimate triple-tax-advantaged account." data-tt-g="Partner Assets">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner HSA" data-tt-b="If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The family contribution limit is $8,550 in 2025 — invest it in index funds for the ultimate triple-tax-advantaged account." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerHSA" placeholder="0"></div>
               </div>
               <div class="form-group">
@@ -709,7 +714,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Traditional 401(k) / 403(b)</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Traditional 401(k) / 403(b)" data-tt-b="Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>2024 limits:</strong> $23,000 employee / $69,000 total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free." data-tt-g="Tax-Deferred">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Traditional 401(k) / 403(b)" data-tt-b="Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>2025 limits:</strong> $23,500 employee / $70,000 total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free." data-tt-g="Tax-Deferred">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401" value="87000"></div>
           </div>
           <div class="form-group">
@@ -724,12 +729,12 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>Roth IRA Balance</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Roth IRA" data-tt-b="Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>2024 limits:</strong> $7,000/yr ($8,000 if 50+)<br><strong>Income limits:</strong> $161K single / $240K married to contribute directly<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½." data-tt-g="Tax-Free">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Roth IRA" data-tt-b="Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>2025 limits:</strong> $7,000/yr ($8,000 if 50+)<br><strong>Income limits:</strong> $150K–$165K single / $236K–$246K married (phase-out)<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIra" value="22000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual Roth IRA Contribution</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Roth IRA Contribution" data-tt-b="How much you contribute to your Roth IRA each year. 2024 limit: $7,000/yr ($8,000 if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever." data-tt-g="Tax-Free">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Roth IRA Contribution" data-tt-b="How much you contribute to your Roth IRA each year. 2025 limit: $7,000/yr ($8,000 if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIraContrib" placeholder="0"></div>
           </div>
           <div class="form-group">
@@ -739,7 +744,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>HSA Balance</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="HSA — Health Savings Account" data-tt-b="The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>2024 limits:</strong> $4,150 individual / $8,300 family<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>." data-tt-g="Tax-Free ⭐">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="HSA — Health Savings Account" data-tt-b="The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>2025 limits:</strong> $4,300 individual / $8,550 family<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>." data-tt-g="Tax-Free ⭐">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsa" value="9500"></div>
           </div>
           <div class="form-group">
@@ -774,7 +779,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>529 College Savings</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="529 College Savings Plan" data-tt-b="Tax-advantaged accounts for education expenses. Contributions grow tax-free and withdrawals for qualified expenses are tax-free.<br><br><strong>New in 2024:</strong> Up to $35,000 of unused 529 funds can be rolled to a Roth IRA (15-year rule, annual Roth limits apply) — making it less risky to over-save here." data-tt-g="Education">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="529 College Savings Plan" data-tt-b="Tax-advantaged accounts for education expenses. Contributions grow tax-free and withdrawals for qualified expenses are tax-free.<br><br><strong>New rule:</strong> Up to $35,000 of unused 529 funds can be rolled to a Roth IRA (15-year rule, annual Roth limits apply) — making it less risky to over-save here." data-tt-g="Education">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="college" placeholder="0"></div>
           </div>
           <div class="form-group">
@@ -837,7 +842,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           <div class="slider-header">
             <div class="label-row">
               <label>Expected Annual Return (real, inflation-adjusted)</label>
-              <button class="ib" onclick="showTT(this)" data-tt-t="Expected Real Annual Return" data-tt-b="The annual investment return <strong>after subtracting inflation (~3%)</strong>. All projections are in today's dollars — so your FIRE Number means the same purchasing power it does now.<br><br>Historical US stock market: ~10% nominal, ~7% real.<br><br><strong>Conservative:</strong> 5–6% (bond-heavy or cautious)<br><strong>Moderate:</strong> 7% (classic total market index)<br><strong>Aggressive:</strong> 8–9% (100% equities, long horizon)<br><br>Vanguard's 2024 forecast: 4.2–6.2% real for a balanced portfolio. Use 7% as a reasonable base case for long-term all-equity investing." data-tt-g="Returns">i</button>
+              <button class="ib" onclick="showTT(this)" data-tt-t="Expected Real Annual Return" data-tt-b="The annual investment return <strong>after subtracting inflation (~3%)</strong>. All projections are in today's dollars — so your FIRE Number means the same purchasing power it does now.<br><br>Historical US stock market: ~10% nominal, ~7% real.<br><br><strong>Conservative:</strong> 5–6% (bond-heavy or cautious)<br><strong>Moderate:</strong> 7% (classic total market index)<br><strong>Aggressive:</strong> 8–9% (100% equities, long horizon)<br><br>Vanguard's 2025 forecast: 4.2–6.2% real for a balanced portfolio. Use 7% as a reasonable base case for long-term all-equity investing." data-tt-g="Returns">i</button>
             </div>
             <div class="slider-val" id="returnVal">7%</div>
           </div>
@@ -979,14 +984,31 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       </div>
       <div style="margin-top:11px;padding-top:11px;border-top:1px solid var(--border);font-size:0.68rem;color:var(--text-dim);line-height:1.55">
         💡 <strong style="color:var(--text-muted)">Safer than Mint, Personal Capital, or any app that requires an account</strong> — those services store your financial data on their servers. FIREtrack stores nothing anywhere except your own device.
+        <span style="display:block;margin-top:7px">
+          📂 <a href="https://github.com/patleezy/firetrack" target="_blank" rel="noopener noreferrer" style="color:var(--fire-orange);text-decoration:none;font-weight:600">View source on GitHub</a> — single HTML file, inspect every line.
+        </span>
       </div>
     </div>
 
     <!-- Disclaimer -->
-    <p style="font-size:0.68rem;color:var(--text-dim);line-height:1.6;text-align:center">
+    <p style="font-size:0.68rem;color:var(--text-dim);line-height:1.6;text-align:center;margin-bottom:14px">
       <strong style="color:var(--text-muted)">📋 For educational &amp; planning purposes only — not financial advice.</strong>
       FIREtrack uses simplified models with constant returns, no market volatility, and approximate tax estimates. Real outcomes will differ. Always consult a licensed financial advisor, CPA, or tax professional before making retirement or investment decisions.
     </p>
+
+    <!-- Buy Me a Coffee -->
+    <div style="background:linear-gradient(135deg,rgba(255,107,43,0.08),rgba(255,179,71,0.06));border:1px solid rgba(255,107,43,0.2);border-radius:14px;padding:18px 20px;text-align:center">
+      <div style="font-size:1.4rem;margin-bottom:6px">☕</div>
+      <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:6px">Keep the Lights On</div>
+      <p style="font-size:0.73rem;color:var(--text-muted);line-height:1.6;margin:0 0 14px;max-width:360px;margin-left:auto;margin-right:auto">
+        FIREtrack is free — no ads, no subscriptions, no data harvesting. If it's helped you get clarity on your retirement path, treating us to coffee keeps it running and improving.
+      </p>
+      <a href="https://buymeacoffee.com/patleezy" target="_blank" rel="noopener noreferrer"
+        style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--ember));color:white;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;padding:10px 20px;border-radius:10px;text-decoration:none;transition:opacity 0.2s"
+        onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+        ☕ Buy me a coffee
+      </a>
+    </div>
 
   </div>
 </footer>
@@ -999,8 +1021,17 @@ let disclaimerDismissed = false;
 // ── TOOLTIP ──
 function tt(title, body, tag) {
   document.getElementById('ttTitle').textContent = title;
-  document.getElementById('ttBody').innerHTML = body;
-  document.getElementById('ttTagWrap').innerHTML = tag ? `<span class="tt-tag">📌 ${tag}</span>` : '';
+  document.getElementById('ttBody').innerHTML = body; // body is always hardcoded static HTML, never user input
+  const tagWrap = document.getElementById('ttTagWrap');
+  if (tag) {
+    const span = document.createElement('span');
+    span.className = 'tt-tag';
+    span.textContent = '📌 ' + tag; // textContent prevents any XSS from tag string
+    tagWrap.innerHTML = '';
+    tagWrap.appendChild(span);
+  } else {
+    tagWrap.innerHTML = '';
+  }
   document.getElementById('ttOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1379,10 +1410,10 @@ function renderDash(){
               dti < 0.43 ? 'Acceptable — watch it' :
               '⚠️ High — lenders may flag this')
           : ''}
-        ${hc('401(k) Maxed?',fmt(s.k401c),s.k401c>=23000,s.k401c>=23000?'Maxed ✓':'2024 limit: $23,000')}
-        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=4150,s.hsac>=4150?'Maxed ✓':'2024 limit: $4,150')}
+        ${hc('401(k) Maxed?',fmt(s.k401c),s.k401c>=23500,s.k401c>=23500?'Maxed ✓':'2025 limit: $23,500')}
+        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=4150,s.hsac>=4300?'Maxed ✓':'2025 limit: $4,300')}
         ${s.ccD>0?hc('Credit Card Debt',fmt(s.ccD),false,'⚠️ Highest priority — pay first!'):''}
-        ${s.hasP?hc('Partner 401k Maxed?',fmt(s.p401c),s.p401c>=23000,s.p401c>=23000?'Maxed ✓':'2024 limit: $23,000'):''}
+        ${s.hasP?hc('Partner 401k Maxed?',fmt(s.p401c),s.p401c>=23500,s.p401c>=23500?'Maxed ✓':'2025 limit: $23,500'):''}
       </div>
     </div>
 
