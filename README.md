@@ -10,7 +10,9 @@
 - 💰 Tax picture in retirement (pre-tax vs Roth vs taxable breakdown)
 - 👫 Partner / spouse financial tracking
 - 🔀 What-If scenario modeling (expenses, contributions, returns)
+- ⚖️ Scenario comparison across saved local profiles
 - 📈 History tracking over time
+- 👤 Named local profiles for multiple plans or household scenarios
 - 📤 Export to PDF, CSV, text, or email
 - 🔒 100% local — all data stays in your browser (localStorage)
 
