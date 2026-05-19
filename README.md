@@ -8,9 +8,13 @@
 - 📊 Net worth & portfolio projection charts (60-year horizon)
 - ⛵ Coast FIRE calculator
 - 💰 Tax picture in retirement (pre-tax vs Roth vs taxable breakdown)
+- 🌉 Withdrawal bridge planner for early retirement before 59½
 - 👫 Partner / spouse financial tracking
 - 🔀 What-If scenario modeling (expenses, contributions, returns)
 - ⚖️ Scenario comparison across saved local profiles
+- 🗓️ Milestone timeline and assumption sensitivity ranges
+- 💾 Local backup / restore for profiles and history
+- ✅ Guided check-ins for clean progress snapshots
 - 📈 History tracking over time
 - 👤 Named local profiles for multiple plans or household scenarios
 - 📤 Export to PDF, CSV, text, or email
