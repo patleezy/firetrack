@@ -428,6 +428,69 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 
 /* INPUT LAYOUT */
 .input-layout { display:flex; flex-direction:column; gap:14px; }
+.live-preview {
+  position:sticky; top:0; z-index:60;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:13px 14px; margin-bottom:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.28);
+}
+.light-mode .live-preview { background:var(--surface); box-shadow:0 12px 32px rgba(20,16,10,0.1); }
+.live-preview-top { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.live-preview-title { display:flex; align-items:center; gap:7px; font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); }
+.live-preview-status { font-size:0.68rem; color:var(--green); white-space:nowrap; }
+.live-preview-actions { display:flex; align-items:center; gap:8px; }
+.live-compact { display:none; grid-template-columns:1fr auto auto; gap:10px; align-items:center; }
+.live-compact-item { min-width:0; }
+.live-compact-label { font-size:0.58rem; color:var(--text-dim); letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap; }
+.live-compact-value { margin-top:1px; font-size:0.98rem; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.live-compact-value.o { color:var(--fire-orange); }
+.live-compact-value.t { color:var(--teal); }
+.live-expand-btn {
+  display:none; width:30px; height:30px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text-muted); cursor:pointer;
+  align-items:center; justify-content:center; font-size:0.9rem; line-height:1;
+}
+.live-expand-btn:hover { border-color:var(--fire-orange); color:var(--fire-orange); }
+.live-preview-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.live-metric { min-width:0; padding:8px 9px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; }
+.live-metric-label { font-size:0.62rem; color:var(--text-dim); letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.live-metric-value { margin-top:3px; font-size:0.93rem; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.live-metric-value.o { color:var(--fire-orange); }
+.live-metric-value.g { color:var(--green); }
+.live-metric-value.t { color:var(--teal); }
+.live-metric.bump { animation:metricBump 0.42s ease; }
+@keyframes metricBump {
+  0% { border-color:var(--fire-orange); box-shadow:0 0 0 0 rgba(255,107,43,0.28); }
+  100% { border-color:var(--border); box-shadow:0 0 0 8px rgba(255,107,43,0); }
+}
+.profile-manager {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:12px 14px; margin-bottom:14px;
+}
+.profile-picker { display:flex; align-items:center; gap:9px; flex:1; min-width:220px; }
+.profile-picker label { font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+.profile-picker .select-wrap { flex:1; min-width:150px; }
+.profile-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+.icon-btn {
+  width:36px; height:36px; border-radius:9px; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text-muted); cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'DM Sans',sans-serif; font-size:0.94rem; transition:all 0.15s;
+}
+.icon-btn:hover { border-color:var(--fire-orange); color:var(--fire-orange); }
+@media(max-width:760px){
+  .live-preview { border-radius:0 0 14px 14px; border-top:none; padding:10px 12px; margin-left:-16px; margin-right:-16px; }
+  .live-preview-top { margin-bottom:8px; }
+  .live-preview-status { display:none; }
+  .live-expand-btn { display:inline-flex; }
+  .live-compact { display:grid; }
+  .live-preview-grid { display:none; grid-template-columns:repeat(2,1fr); margin-top:10px; }
+  .live-preview.expanded .live-preview-grid { display:grid; }
+  .live-preview.expanded .live-expand-btn { color:var(--fire-orange); border-color:var(--fire-orange); }
+}
+@media(max-width:680px){ .profile-manager{align-items:stretch;flex-direction:column;} .profile-actions{justify-content:flex-start;} }
+@media(max-width:380px){ .live-preview-grid{grid-template-columns:1fr;} }
 
 /* EMPTY STATE */
 .empty { text-align:center; padding:50px 20px; color:var(--text-muted); }
@@ -459,6 +522,20 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   font-family:'DM Sans',sans-serif; transition:all 0.15s; margin-bottom:14px;
 }
 .hist-clear-btn:hover { border-color:var(--ember); color:var(--ember); }
+
+/* SCENARIO COMPARE */
+.compare-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+.compare-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; }
+.compare-card.active { border-color:var(--fire-orange); background:linear-gradient(135deg,rgba(255,107,43,0.08),transparent); }
+.compare-name { font-size:0.92rem; font-weight:700; color:var(--text); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.compare-badge { font-size:0.62rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--fire-orange); }
+.compare-row { display:flex; justify-content:space-between; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); }
+.compare-row:last-child { border-bottom:none; }
+.compare-label { font-size:0.72rem; color:var(--text-muted); }
+.compare-value { font-size:0.8rem; font-weight:700; color:var(--text); text-align:right; }
+.compare-delta { display:block; margin-top:2px; font-size:0.65rem; font-weight:600; color:var(--text-dim); }
+.compare-delta.good { color:var(--green); }
+.compare-delta.warn { color:var(--fire-amber); }
 
 /* PRINT */
 @media print {
@@ -574,7 +651,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           <button onclick="exportEmail();closeExportMenu()">✉️ Email Summary</button>
         </div>
       </div>
-      <button class="btn btn-fire" onclick="calculate(); showView('dashboard')">Calculate →</button>
+      <button class="btn btn-fire" onclick="calculate({recordSnapshot:true}); showView('dashboard')">Save Snapshot →</button>
     </div>
   </header>
 
@@ -590,6 +667,39 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
   <div class="view" id="view-input">
     <div class="section-heading">Your Financial Profile</div>
     <div class="section-sub">Fill in what you know — tap any <strong style="color:var(--fire-orange)">ⓘ</strong> for a plain-English explanation of any field.</div>
+    <div class="live-preview" id="livePreview">
+      <div class="live-preview-top">
+        <div class="live-preview-title"><span class="dot"></span> Live FIRE Preview</div>
+        <div class="live-preview-actions">
+          <div class="live-preview-status" id="livePreviewStatus">Updates as you type</div>
+          <button class="live-expand-btn" id="liveExpandBtn" onclick="toggleLivePreview()" title="Expand live preview" aria-label="Expand live preview">⌄</button>
+        </div>
+      </div>
+      <div class="live-compact">
+        <div class="live-compact-item"><div class="live-compact-label">FIRE</div><div class="live-compact-value o" id="liveCompactFire">—</div></div>
+        <div class="live-compact-item"><div class="live-compact-label">Age</div><div class="live-compact-value" id="liveCompactAge">—</div></div>
+        <div class="live-compact-item"><div class="live-compact-label">Save</div><div class="live-compact-value t" id="liveCompactSavings">—</div></div>
+      </div>
+      <div class="live-preview-grid">
+        <div class="live-metric" data-live-key="fireNum"><div class="live-metric-label">FIRE Number</div><div class="live-metric-value o" id="liveFireNum">—</div></div>
+        <div class="live-metric" data-live-key="fireAge"><div class="live-metric-label">FIRE Age</div><div class="live-metric-value" id="liveFireAge">—</div></div>
+        <div class="live-metric" data-live-key="years"><div class="live-metric-label">Years to FI</div><div class="live-metric-value" id="liveYears">—</div></div>
+        <div class="live-metric" data-live-key="savings"><div class="live-metric-label">Savings Rate</div><div class="live-metric-value t" id="liveSavingsRate">—</div></div>
+        <div class="live-metric" data-live-key="netWorth"><div class="live-metric-label">Net Worth</div><div class="live-metric-value g" id="liveNetWorth">—</div></div>
+      </div>
+    </div>
+    <div class="profile-manager" id="profileManager">
+      <div class="profile-picker">
+        <label for="profileSelect">Local Profile</label>
+        <div class="select-wrap"><select id="profileSelect" onchange="switchProfile(this.value)"></select></div>
+      </div>
+      <div class="profile-actions" aria-label="Profile actions">
+        <button class="icon-btn" onclick="newProfile()" title="New profile">＋</button>
+        <button class="icon-btn" onclick="duplicateProfile()" title="Duplicate profile">⧉</button>
+        <button class="icon-btn" onclick="renameProfile()" title="Rename profile">✎</button>
+        <button class="icon-btn" onclick="deleteProfile()" title="Delete profile">⌫</button>
+      </div>
+    </div>
     <div class="input-layout">
 
       <!-- PERSONAL -->
@@ -927,7 +1037,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             </div>
             <div class="slider-val" id="returnVal">7%</div>
           </div>
-          <input type="range" id="returnRate" min="3" max="12" value="7" step="0.5" oninput="document.getElementById('returnVal').textContent=this.value+'%'">
+          <input type="range" id="returnRate" min="3" max="12" value="7" step="0.5" oninput="document.getElementById('returnVal').textContent=this.value+'%'; scheduleLiveCalculate()">
           <div class="itip"><span class="e">💡</span>JL Collins: long-term index investors have historically earned ~7% real. Use 5–6% if you want to be conservative.</div>
         </div>
         <div class="two-col">
@@ -961,8 +1071,8 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       </div>
 
       <div style="text-align:center;padding-top:6px">
-        <button class="btn btn-fire" style="padding:14px 32px;font-size:0.98rem;width:100%;max-width:380px" onclick="calculate(); showView('dashboard')">
-          🔥 Calculate My FIRE Journey →
+        <button class="btn btn-fire" style="padding:14px 32px;font-size:0.98rem;width:100%;max-width:380px" onclick="calculate({recordSnapshot:true}); showView('dashboard')">
+          🔥 Save Snapshot &amp; View Dashboard →
         </button>
       </div>
     </div>
@@ -973,7 +1083,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     <div id="dashContent">
       <div class="empty">
         <div class="ei">🔥</div>
-        <p>Fill in your profile and tap <strong>Calculate</strong> to see your personalized FIRE dashboard!</p>
+        <p>Fill in your profile to see live results, then save a snapshot when you want to record progress.</p>
         <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button>
       </div>
     </div>
@@ -994,6 +1104,14 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       <div id="whatifContent" class="section-body"></div>
     </div>
 
+    <!-- SCENARIO COMPARE SECTION -->
+    <div id="compareSection" style="display:none">
+      <div class="section-divider" onclick="toggleSection('compareContent','compareChevron')">
+        <span>⚖️ Scenario Compare</span><span id="compareChevron" class="chevron">▾</span>
+      </div>
+      <div id="compareContent" class="section-body"></div>
+    </div>
+
     <!-- TIPS SECTION -->
     <div id="tipsSection">
       <div class="section-divider" onclick="toggleSection('tipsContent','tipsChevron')">
@@ -1010,7 +1128,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       <div id="historyContent" class="section-body" style="display:none">
         <div class="empty">
           <div class="ei">📊</div>
-          <p>No history yet. Hit <strong>Calculate</strong> to record your first snapshot!</p>
+          <p>No history yet. Save a snapshot to record your first progress point.</p>
         </div>
       </div>
     </div>
@@ -1098,6 +1216,9 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 let darkMode = true, partnerOn = false, calculated = false, state = {};
 let projChart = null, allocChart = null;
 let disclaimerDismissed = false;
+let liveCalcTimer = null;
+let liveSummaryLast = {};
+let profilesStore = null;
 
 // ── TOOLTIP ──
 function tt(title, body, tag) {
@@ -1150,6 +1271,7 @@ function togglePartner() {
   partnerOn = !partnerOn;
   document.getElementById('partnerToggle').classList.toggle('on', partnerOn);
   document.getElementById('partnerSection').classList.toggle('open', partnerOn);
+  scheduleLiveCalculate();
 }
 const pOn = () => document.getElementById('partnerSection').classList.contains('open');
 
@@ -1157,6 +1279,7 @@ const pOn = () => document.getElementById('partnerSection').classList.contains('
 function setFT(type, el) {
   document.querySelectorAll('.ft-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
+  scheduleLiveCalculate();
 }
 
 // ── TABS ──
@@ -1185,8 +1308,87 @@ const fmt = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',
 const fmtN = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(n);
 const gv = id => parseFloat(document.getElementById(id)?.value)||0;
 
+// ── LIVE CALCULATION ──
+function scheduleLiveCalculate() {
+  const status = document.getElementById('livePreviewStatus');
+  if (status) {
+    status.textContent = 'Updating...';
+    status.style.color = 'var(--fire-amber)';
+  }
+  clearTimeout(liveCalcTimer);
+  liveCalcTimer = setTimeout(() => calculate({recordSnapshot:false}), 280);
+}
+
+function bindLiveCalculation() {
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', scheduleLiveCalculate);
+    el.addEventListener('change', scheduleLiveCalculate);
+  });
+}
+
+function setLiveMetric(key, id, value) {
+  const el = document.getElementById(id);
+  const card = document.querySelector(`.live-metric[data-live-key="${key}"]`);
+  if (!el || !card) return;
+  el.textContent = value;
+  if (liveSummaryLast[key] !== undefined && liveSummaryLast[key] !== value) {
+    card.classList.remove('bump');
+    void card.offsetWidth;
+    card.classList.add('bump');
+  }
+  liveSummaryLast[key] = value;
+}
+
+function renderLiveSummary() {
+  if (!calculated) return;
+  const s = state;
+  const fireAge = s.fireYear !== null ? `Age ${s.age + s.fireYear}` : 'Beyond 60 yrs';
+  const years = s.fireYear !== null ? `${s.fireYear} yr${s.fireYear === 1 ? '' : 's'}` : '—';
+  const savings = `${Math.round(s.savRate * 100)}%`;
+  setLiveMetric('fireNum', 'liveFireNum', fmt(s.fireNum));
+  setLiveMetric('fireAge', 'liveFireAge', fireAge);
+  setLiveMetric('years', 'liveYears', years);
+  setLiveMetric('savings', 'liveSavingsRate', savings);
+  setLiveMetric('netWorth', 'liveNetWorth', fmt(s.netWorth));
+  setLiveMetric('compactFire', 'liveCompactFire', fmt(s.fireNum));
+  setLiveMetric('compactAge', 'liveCompactAge', fireAge.replace('Age ', ''));
+  setLiveMetric('compactSavings', 'liveCompactSavings', savings);
+  const status = document.getElementById('livePreviewStatus');
+  if (status) {
+    status.textContent = 'Live';
+    status.style.color = 'var(--green)';
+  }
+}
+
+function toggleLivePreview() {
+  const preview = document.getElementById('livePreview');
+  const btn = document.getElementById('liveExpandBtn');
+  if (!preview || !btn) return;
+  const expanded = preview.classList.toggle('expanded');
+  btn.textContent = expanded ? '⌃' : '⌄';
+  btn.title = expanded ? 'Collapse live preview' : 'Expand live preview';
+  btn.setAttribute('aria-label', btn.title);
+}
+
+function profileSummaryFromState(s) {
+  return {
+    fireNum: Math.round(s.fireNum),
+    fireAge: s.fireYear !== null ? s.age + s.fireYear : null,
+    yearsToFI: s.fireYear,
+    savingsRate: Math.round(s.savRate * 100),
+    netWorth: Math.round(s.netWorth),
+    investable: Math.round(s.totalInv),
+    progress: Math.round(s.progress * 100),
+    annualSavings: Math.round(s.totalC),
+    updatedAt: new Date().toISOString()
+  };
+}
+
 // ── CALCULATE ──
-function calculate() {
+function calculate(options = {}) {
+  const recordSnapshot = options.recordSnapshot === true;
   const age = gv('age'), retireAge = gv('retireAge'), ytf = Math.max(retireAge-age,1);
   const hasP = pOn();
 
@@ -1310,11 +1512,18 @@ function calculate() {
 
   calculated = true;
   saveInputs();
-  addSnapshot(state);
-  renderDash(); renderProj(); renderWhatIf();
+  const profile = activeProfile();
+  if (profile) {
+    profile.summary = profileSummaryFromState(state);
+    persistProfilesStore();
+  }
+  if (recordSnapshot) addSnapshot(state);
+  renderLiveSummary();
+  renderDash(); renderProj(); renderWhatIf(); renderCompare();
   // Reveal the collapsible sections in dashboard
   document.getElementById('projSection').style.display = 'block';
   document.getElementById('whatifSection').style.display = 'block';
+  document.getElementById('compareSection').style.display = 'block';
   renderHistory();
 }
 
@@ -1747,6 +1956,60 @@ function wiR(base,years,age,desc){
     <div style="font-size:0.77rem;color:var(--text-muted);margin-top:2px">FIRE at age ${age+years} · ${desc}</div></div>`;
 }
 
+// ── SCENARIO COMPARE ──
+function renderCompare() {
+  const el = document.getElementById('compareContent');
+  if (!el) return;
+  loadProfilesStore();
+  const profiles = profilesStore.profiles || [];
+  if (profiles.length < 2) {
+    el.innerHTML = `<div class="empty" style="padding:28px 20px">
+      <div class="ei">⚖️</div>
+      <p>Duplicate your current profile, tweak the copy, then compare the outcomes here.</p>
+      <button class="btn btn-fire" onclick="showView('input')">Go to Profiles</button>
+    </div>`;
+    return;
+  }
+
+  const active = activeProfile();
+  const base = active?.summary || profileSummaryFromState(state);
+  const delta = (value, baseValue, lowerIsBetter = false, suffix = '') => {
+    if (value === null || value === undefined || baseValue === null || baseValue === undefined || value === baseValue) return '';
+    const diff = value - baseValue;
+    const good = lowerIsBetter ? diff < 0 : diff > 0;
+    const sign = diff > 0 ? '+' : '';
+    return `<span class="compare-delta ${good ? 'good' : 'warn'}">${sign}${diff}${suffix} vs active</span>`;
+  };
+
+  el.innerHTML = `
+    <div class="section-heading">Scenario Compare</div>
+    <div class="section-sub">Use local profiles as scenarios. Duplicate a profile, change the assumptions, and compare FIRE outcomes without retyping your base info.</div>
+    <div class="compare-grid">
+      ${profiles.map(profile => {
+        const summary = profile.summary;
+        const isActive = profile.id === profilesStore.activeId;
+        if (!summary) {
+          return `<div class="compare-card ${isActive ? 'active' : ''}">
+            <div class="compare-name"><span>${escHTML(profile.name)}</span>${isActive ? '<span class="compare-badge">Active</span>' : ''}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-bottom:10px">Open this profile once to calculate its comparison metrics.</div>
+            ${!isActive ? `<button class="btn btn-ghost" onclick="switchProfile('${profile.id}');showView('input')">Open Profile</button>` : ''}
+          </div>`;
+        }
+        const fireAge = summary.fireAge ? `Age ${summary.fireAge}` : 'Beyond range';
+        const years = summary.yearsToFI !== null ? `${summary.yearsToFI} yrs` : '—';
+        return `<div class="compare-card ${isActive ? 'active' : ''}">
+          <div class="compare-name"><span>${escHTML(profile.name)}</span>${isActive ? '<span class="compare-badge">Active</span>' : `<button class="btn btn-ghost" style="padding:4px 9px;font-size:0.68rem" onclick="switchProfile('${profile.id}');showView('dashboard')">Open</button>`}</div>
+          <div class="compare-row"><span class="compare-label">FIRE Number</span><span class="compare-value">${fmt(summary.fireNum)}${delta(summary.fireNum, base.fireNum, true)}</span></div>
+          <div class="compare-row"><span class="compare-label">FIRE Age</span><span class="compare-value">${fireAge}${delta(summary.fireAge, base.fireAge, true, ' yrs')}</span></div>
+          <div class="compare-row"><span class="compare-label">Years to FI</span><span class="compare-value">${years}${delta(summary.yearsToFI, base.yearsToFI, true, ' yrs')}</span></div>
+          <div class="compare-row"><span class="compare-label">Savings Rate</span><span class="compare-value">${summary.savingsRate}%${delta(summary.savingsRate, base.savingsRate, false, '%')}</span></div>
+          <div class="compare-row"><span class="compare-label">Net Worth</span><span class="compare-value">${fmt(summary.netWorth)}</span></div>
+          <div class="compare-row"><span class="compare-label">Progress</span><span class="compare-value">${summary.progress}%${delta(summary.progress, base.progress, false, '%')}</span></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
 // ── TIPS ──
 const tipsData=[
   {a:'JL Collins',t:'The Simple Path to Wealth: Own a total market index fund (VTSAX or equivalent), avoid debt, and let compounding do the heavy lifting. Complexity is the enemy of wealth.',tag:'Investing',i:'📚'},
@@ -1941,6 +2204,7 @@ function showEmailCopiedToast() {
 }
 const LS_INPUTS = 'firetrack_inputs_v1';
 const LS_HISTORY = 'firetrack_history_v1';
+const LS_PROFILES = 'firetrack_profiles_v1';
 
 // Fields to save/restore
 const INPUT_IDS = [
@@ -1955,7 +2219,15 @@ const INPUT_IDS = [
   'returnRate','swr','socialSecurity','ssStartAge','retireTaxRate'
 ];
 
-function saveInputs() {
+function profileId() {
+  return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+function escHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function collectInputData() {
   const data = {};
   INPUT_IDS.forEach(id => {
     const el = document.getElementById(id);
@@ -1965,22 +2237,19 @@ function saveInputs() {
   // Save active FIRE type
   const activeFT = document.querySelector('.ft-btn.active');
   data._fireType = activeFT ? activeFT.dataset.ft : 'regular';
-  try { localStorage.setItem(LS_INPUTS, JSON.stringify(data)); } catch(e) {}
+  return data;
 }
 
-function loadInputs() {
-  let data;
-  try { data = JSON.parse(localStorage.getItem(LS_INPUTS)); } catch(e) {}
+function applyInputData(data) {
   if (!data) return;
   INPUT_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (el && data[id] !== undefined) el.value = data[id];
   });
   // Restore partner toggle
-  if (data._partnerOpen) {
-    document.getElementById('partnerToggle').classList.add('on');
-    document.getElementById('partnerSection').classList.add('open');
-  }
+  partnerOn = !!data._partnerOpen;
+  document.getElementById('partnerToggle').classList.toggle('on', partnerOn);
+  document.getElementById('partnerSection').classList.toggle('open', partnerOn);
   // Restore FIRE type
   if (data._fireType) {
     document.querySelectorAll('.ft-btn').forEach(b => b.classList.remove('active'));
@@ -1992,12 +2261,158 @@ function loadInputs() {
   if (rr) document.getElementById('returnVal').textContent = rr.value + '%';
 }
 
+function activeProfile() {
+  if (!profilesStore) loadProfilesStore();
+  return profilesStore.profiles.find(p => p.id === profilesStore.activeId) || profilesStore.profiles[0];
+}
+
+function loadProfilesStore() {
+  if (profilesStore) return profilesStore;
+  try { profilesStore = JSON.parse(localStorage.getItem(LS_PROFILES)); } catch(e) {}
+  if (!profilesStore || !Array.isArray(profilesStore.profiles) || profilesStore.profiles.length === 0) {
+    let legacyInputs = null, legacyHistory = [];
+    try { legacyInputs = JSON.parse(localStorage.getItem(LS_INPUTS)); } catch(e) {}
+    try { legacyHistory = JSON.parse(localStorage.getItem(LS_HISTORY)) || []; } catch(e) {}
+    const id = profileId();
+    profilesStore = {
+      activeId: id,
+      profiles: [{
+        id,
+        name: 'My FIRE Plan',
+        data: legacyInputs || collectInputData(),
+        history: legacyHistory,
+        createdAt: new Date().toISOString()
+      }]
+    };
+    persistProfilesStore();
+  }
+  if (!profilesStore.profiles.some(p => p.id === profilesStore.activeId)) {
+    profilesStore.activeId = profilesStore.profiles[0].id;
+  }
+  return profilesStore;
+}
+
+function persistProfilesStore() {
+  if (!profilesStore) return;
+  try { localStorage.setItem(LS_PROFILES, JSON.stringify(profilesStore)); } catch(e) {}
+  const profile = activeProfile();
+  if (!profile) return;
+  try { localStorage.setItem(LS_INPUTS, JSON.stringify(profile.data || {})); } catch(e) {}
+  try { localStorage.setItem(LS_HISTORY, JSON.stringify(profile.history || [])); } catch(e) {}
+}
+
+function saveInputs() {
+  const profile = activeProfile();
+  if (!profile) return;
+  profile.data = collectInputData();
+  profile.updatedAt = new Date().toISOString();
+  persistProfilesStore();
+}
+
+function loadInputs() {
+  loadProfilesStore();
+  const profile = activeProfile();
+  applyInputData(profile?.data);
+  renderProfileControls();
+}
+
+function renderProfileControls() {
+  const select = document.getElementById('profileSelect');
+  if (!select || !profilesStore) return;
+  select.innerHTML = profilesStore.profiles.map(p =>
+    `<option value="${escHTML(p.id)}" ${p.id === profilesStore.activeId ? 'selected' : ''}>${escHTML(p.name)}</option>`
+  ).join('');
+}
+
+function switchProfile(id) {
+  if (!profilesStore || id === profilesStore.activeId) return;
+  saveInputs();
+  profilesStore.activeId = id;
+  persistProfilesStore();
+  loadInputs();
+  calculate({recordSnapshot:false});
+}
+
+function newProfile() {
+  saveInputs();
+  const name = prompt('Name this profile:', 'New FIRE Plan');
+  if (!name) { renderProfileControls(); return; }
+  const cleanName = name.trim();
+  if (!cleanName) { renderProfileControls(); return; }
+  const id = profileId();
+  profilesStore.profiles.push({
+    id,
+    name: cleanName,
+    data: collectInputData(),
+    history: [],
+    createdAt: new Date().toISOString()
+  });
+  profilesStore.activeId = id;
+  persistProfilesStore();
+  loadInputs();
+  calculate({recordSnapshot:false});
+}
+
+function duplicateProfile() {
+  saveInputs();
+  const current = activeProfile();
+  if (!current) return;
+  const name = prompt('Name the duplicate profile:', `${current.name} Copy`);
+  if (!name) { renderProfileControls(); return; }
+  const cleanName = name.trim();
+  if (!cleanName) { renderProfileControls(); return; }
+  const id = profileId();
+  profilesStore.profiles.push({
+    id,
+    name: cleanName,
+    data: JSON.parse(JSON.stringify(current.data || collectInputData())),
+    history: [],
+    createdAt: new Date().toISOString()
+  });
+  profilesStore.activeId = id;
+  persistProfilesStore();
+  loadInputs();
+  calculate({recordSnapshot:false});
+}
+
+function renameProfile() {
+  const current = activeProfile();
+  if (!current) return;
+  const name = prompt('Rename this profile:', current.name);
+  if (!name) return;
+  const cleanName = name.trim();
+  if (!cleanName) return;
+  current.name = cleanName;
+  current.updatedAt = new Date().toISOString();
+  persistProfilesStore();
+  renderProfileControls();
+}
+
+function deleteProfile() {
+  const current = activeProfile();
+  if (!current || profilesStore.profiles.length === 1) {
+    alert('Keep at least one local profile.');
+    return;
+  }
+  if (!confirm(`Delete "${current.name}"? This removes its local history too.`)) return;
+  profilesStore.profiles = profilesStore.profiles.filter(p => p.id !== current.id);
+  profilesStore.activeId = profilesStore.profiles[0].id;
+  persistProfilesStore();
+  loadInputs();
+  calculate({recordSnapshot:false});
+}
+
 // ── HISTORY SNAPSHOTS ──
 function loadHistory() {
-  try { return JSON.parse(localStorage.getItem(LS_HISTORY)) || []; } catch(e) { return []; }
+  const profile = activeProfile();
+  return Array.isArray(profile?.history) ? profile.history : [];
 }
 function saveHistory(snapshots) {
-  try { localStorage.setItem(LS_HISTORY, JSON.stringify(snapshots)); } catch(e) {}
+  const profile = activeProfile();
+  if (!profile) return;
+  profile.history = snapshots;
+  profile.updatedAt = new Date().toISOString();
+  persistProfilesStore();
 }
 function addSnapshot(s) {
   const snapshots = loadHistory();
@@ -2045,7 +2460,7 @@ function renderHistory() {
 
   if (snapshots.length === 0) {
     el.innerHTML = `<div class="empty"><div class="ei">📊</div>
-      <p>No snapshots yet. Hit <strong>Calculate</strong> to record your first data point!</p>
+      <p>No snapshots yet. Save a snapshot to record your first data point.</p>
       <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button></div>`;
     return;
   }
@@ -2172,17 +2587,26 @@ document.querySelectorAll('.ft-btn').forEach(btn => {
 
 renderTips();
 loadInputs();
-// Only auto-calculate if user has previously saved data
+bindLiveCalculation();
+// Render a live preview immediately; only explicit saves create history snapshots.
 const hasSaved = (() => { try { return !!localStorage.getItem(LS_INPUTS); } catch(e) { return false; } })();
 if (hasSaved) {
-  calculate();
+  calculate({recordSnapshot:false});
   showView('dashboard');
 } else {
+  calculate({recordSnapshot:false});
   showView('input');
 }
 
 // Expose functions globally so inline onclick handlers work in sandboxed environments
 window.calculate = calculate;
+window.scheduleLiveCalculate = scheduleLiveCalculate;
+window.toggleLivePreview = toggleLivePreview;
+window.switchProfile = switchProfile;
+window.newProfile = newProfile;
+window.duplicateProfile = duplicateProfile;
+window.renameProfile = renameProfile;
+window.deleteProfile = deleteProfile;
 window.switchTab = switchTab;
 window.showView = showView;
 window.toggleMode = toggleMode;
