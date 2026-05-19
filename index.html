@@ -283,6 +283,18 @@ input:focus,select:focus { border-color:var(--fire-orange); box-shadow:0 0 0 3px
 .section-divider:hover { color:var(--text); }
 .chevron { font-size:0.9rem; transition:transform 0.2s; }
 .section-body { margin-bottom:8px; }
+.dash-jump {
+  position:sticky; top:0; z-index:50; display:flex; gap:6px; overflow-x:auto;
+  padding:8px 0 10px; margin-bottom:10px; background:var(--bg);
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.dash-jump::-webkit-scrollbar { display:none; }
+.dash-jump button {
+  border:1px solid var(--border); background:var(--surface); color:var(--text-muted);
+  border-radius:999px; padding:7px 12px; font-family:'DM Sans',sans-serif;
+  font-size:0.74rem; font-weight:600; white-space:nowrap; cursor:pointer;
+}
+.dash-jump button:hover { border-color:var(--fire-orange); color:var(--fire-orange); }
 
 /* FIRE TYPE BADGE on dashboard */
 .fire-type-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; letter-spacing:0.04em; margin-bottom:10px; }
@@ -470,15 +482,19 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 }
 .profile-picker { display:flex; align-items:center; gap:9px; flex:1; min-width:220px; }
 .profile-picker label { font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+.profile-label { display:flex; align-items:center; gap:6px; }
 .profile-picker .select-wrap { flex:1; min-width:150px; }
 .profile-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
 .icon-btn {
   width:36px; height:36px; border-radius:9px; border:1px solid var(--border);
   background:var(--surface2); color:var(--text-muted); cursor:pointer;
   display:inline-flex; align-items:center; justify-content:center;
-  font-family:'DM Sans',sans-serif; font-size:0.94rem; transition:all 0.15s;
+  font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:800; transition:all 0.15s;
 }
 .icon-btn:hover { border-color:var(--fire-orange); color:var(--fire-orange); }
+.icon-btn svg { width:18px; height:18px; stroke:currentColor; stroke-width:2.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.icon-btn.accent { color:var(--fire-orange); }
+.icon-btn.accent:hover { background:rgba(255,107,43,0.1); }
 @media(max-width:760px){
   .live-preview { border-radius:0 0 14px 14px; border-top:none; padding:10px 12px; margin-left:-16px; margin-right:-16px; }
   .live-preview-top { margin-bottom:8px; }
@@ -536,6 +552,43 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 .compare-delta { display:block; margin-top:2px; font-size:0.65rem; font-weight:600; color:var(--text-dim); }
 .compare-delta.good { color:var(--green); }
 .compare-delta.warn { color:var(--fire-amber); }
+
+/* WITHDRAWAL BRIDGE */
+.bridge-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+.bridge-pill {
+  background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+  padding:11px 12px; min-width:0;
+}
+.bridge-pill-label { font-size:0.62rem; color:var(--text-dim); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:3px; }
+.bridge-pill-value { font-size:1rem; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bridge-track { height:14px; background:var(--surface3); border-radius:7px; overflow:hidden; display:flex; margin:10px 0 8px; }
+.bridge-segment { height:100%; transition:width 0.7s ease; }
+.bridge-source {
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:9px 0; border-bottom:1px solid var(--border);
+}
+.bridge-source:last-child { border-bottom:none; }
+.bridge-source-name { display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--text-muted); }
+.bridge-swatch { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+.bridge-source-val { font-size:0.86rem; font-weight:700; text-align:right; }
+@media(max-width:760px){ .bridge-summary{grid-template-columns:1fr 1fr;} }
+@media(max-width:420px){ .bridge-summary{grid-template-columns:1fr;} }
+
+/* TIMELINE + SENSITIVITY */
+.timeline { display:flex; flex-direction:column; gap:8px; }
+.timeline-item { display:grid; grid-template-columns:86px 1fr auto; gap:10px; align-items:center; padding:10px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; }
+.timeline-age { font-weight:700; color:var(--fire-orange); font-size:0.86rem; }
+.timeline-title { font-weight:700; font-size:0.84rem; color:var(--text); }
+.timeline-note { font-size:0.7rem; color:var(--text-muted); margin-top:2px; }
+.timeline-status { font-size:0.7rem; font-weight:700; color:var(--text-muted); white-space:nowrap; }
+.timeline-item.done .timeline-status { color:var(--green); }
+.sensitivity-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.sensitivity-card { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px; }
+.sensitivity-name { font-size:0.72rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:7px; }
+.sensitivity-age { font-size:1.35rem; font-weight:700; color:var(--text); }
+.sensitivity-card.base { border-color:rgba(255,107,43,0.45); background:linear-gradient(135deg,rgba(255,107,43,0.08),var(--surface2)); }
+.sensitivity-card.base .sensitivity-age { color:var(--fire-orange); }
+@media(max-width:760px){ .timeline-item{grid-template-columns:72px 1fr;} .timeline-status{grid-column:2;} .sensitivity-grid{grid-template-columns:1fr;} }
 
 /* PRINT */
 @media print {
@@ -690,7 +743,10 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     </div>
     <div class="profile-manager" id="profileManager">
       <div class="profile-picker">
-        <label for="profileSelect">Local Profile</label>
+        <div class="profile-label">
+          <label for="profileSelect">Saved Profile</label>
+          <button class="ib" onclick="showTT(this)" data-tt-t="Saved Profiles" data-tt-b="Saved profiles live only in this browser. Use them for yourself, a household plan, conservative or optimistic scenarios, or separate people. Nothing leaves your device.<br><br><strong>Actions:</strong><br>＋ New profile<br>⧉ Duplicate current profile<br>✎ Rename profile<br>⌫ Delete profile<br>⬇ Export all profiles and history<br>⬆ Import a FIREtrack backup" data-tt-g="Local only">i</button>
+        </div>
         <div class="select-wrap"><select id="profileSelect" onchange="switchProfile(this.value)"></select></div>
       </div>
       <div class="profile-actions" aria-label="Profile actions">
@@ -698,6 +754,13 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <button class="icon-btn" onclick="duplicateProfile()" title="Duplicate profile">⧉</button>
         <button class="icon-btn" onclick="renameProfile()" title="Rename profile">✎</button>
         <button class="icon-btn" onclick="deleteProfile()" title="Delete profile">⌫</button>
+        <button class="icon-btn accent" onclick="exportBackup()" title="Export all profiles and history">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+        </button>
+        <button class="icon-btn accent" onclick="document.getElementById('backupImport').click()" title="Import profiles and history backup">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"></path><path d="M7 14l5-5 5 5"></path><path d="M5 3h14"></path></svg>
+        </button>
+        <input type="file" id="backupImport" accept="application/json,.json" style="display:none" onchange="importBackup(this)">
       </div>
     </div>
     <div class="input-layout">
@@ -1080,6 +1143,17 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
 
   <!-- ── DASHBOARD VIEW ── -->
   <div class="view active" id="view-dashboard">
+    <div class="dash-jump" id="dashJump" style="display:none">
+      <button onclick="jumpToDash('dashContent')">Overview</button>
+      <button onclick="jumpToDash('bridgePlanner')">Bridge</button>
+      <button onclick="jumpToDash('milestoneTimeline')">Timeline</button>
+      <button onclick="jumpToDash('sensitivityPanel')">Sensitivity</button>
+      <button onclick="jumpToDash('projSection')">Projections</button>
+      <button onclick="jumpToDash('whatifSection')">What-If</button>
+      <button onclick="jumpToDash('compareSection')">Compare</button>
+      <button onclick="jumpToDash('historySection')">History</button>
+      <button onclick="jumpToDash('tipsSection')">Tips</button>
+    </div>
     <div id="dashContent">
       <div class="empty">
         <div class="ei">🔥</div>
@@ -1091,33 +1165,25 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     <!-- PROJECTIONS SECTION -->
     <div id="projSection" style="display:none">
       <div class="section-divider" onclick="toggleSection('projContent','projChevron')">
-        <span>📈 Portfolio Projections</span><span id="projChevron" class="chevron">▾</span>
+        <span>📈 Portfolio Projections</span><span id="projChevron" class="chevron">▸</span>
       </div>
-      <div id="projContent" class="section-body"></div>
+      <div id="projContent" class="section-body" style="display:none"></div>
     </div>
 
     <!-- WHAT-IF SECTION -->
     <div id="whatifSection" style="display:none">
       <div class="section-divider" onclick="toggleSection('whatifContent','whatifChevron')">
-        <span>🎯 What-If Scenarios</span><span id="whatifChevron" class="chevron">▾</span>
+        <span>🎯 What-If Scenarios</span><span id="whatifChevron" class="chevron">▸</span>
       </div>
-      <div id="whatifContent" class="section-body"></div>
+      <div id="whatifContent" class="section-body" style="display:none"></div>
     </div>
 
     <!-- SCENARIO COMPARE SECTION -->
     <div id="compareSection" style="display:none">
       <div class="section-divider" onclick="toggleSection('compareContent','compareChevron')">
-        <span>⚖️ Scenario Compare</span><span id="compareChevron" class="chevron">▾</span>
+        <span>⚖️ Scenario Compare</span><span id="compareChevron" class="chevron">▸</span>
       </div>
-      <div id="compareContent" class="section-body"></div>
-    </div>
-
-    <!-- TIPS SECTION -->
-    <div id="tipsSection">
-      <div class="section-divider" onclick="toggleSection('tipsContent','tipsChevron')">
-        <span>💡 Expert Tips</span><span id="tipsChevron" class="chevron">▸</span>
-      </div>
-      <div id="tipsContent" class="section-body" style="display:none"></div>
+      <div id="compareContent" class="section-body" style="display:none"></div>
     </div>
 
     <!-- HISTORY SECTION -->
@@ -1131,6 +1197,14 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           <p>No history yet. Save a snapshot to record your first progress point.</p>
         </div>
       </div>
+    </div>
+
+    <!-- TIPS SECTION -->
+    <div id="tipsSection">
+      <div class="section-divider" onclick="toggleSection('tipsContent','tipsChevron')">
+        <span>💡 Expert Tips</span><span id="tipsChevron" class="chevron">▸</span>
+      </div>
+      <div id="tipsContent" class="section-body" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -1183,9 +1257,6 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
       </div>
       <div style="margin-top:11px;padding-top:11px;border-top:1px solid var(--border);font-size:0.68rem;color:var(--text-dim);line-height:1.55">
         💡 <strong style="color:var(--text-muted)">Safer than Mint, Personal Capital, or any app that requires an account</strong> — those services store your financial data on their servers. FIREtrack stores nothing anywhere except your own device.
-        <span style="display:block;margin-top:7px">
-          📂 <a href="https://github.com/patleezy/firetrack" target="_blank" rel="noopener noreferrer" style="color:var(--fire-orange);text-decoration:none;font-weight:600">View source on GitHub</a>
-        </span>
       </div>
     </div>
 
@@ -1520,6 +1591,7 @@ function calculate(options = {}) {
   if (recordSnapshot) addSnapshot(state);
   renderLiveSummary();
   renderDash(); renderProj(); renderWhatIf(); renderCompare();
+  document.getElementById('dashJump').style.display = 'flex';
   // Reveal the collapsible sections in dashboard
   document.getElementById('projSection').style.display = 'block';
   document.getElementById('whatifSection').style.display = 'block';
@@ -1747,6 +1819,12 @@ function renderDash(){
       <div class="itip" style="margin-top:8px"><span class="e">💡</span>This estimate assumes proportional withdrawals from all accounts. In practice, optimal sequencing (taxable → pre-tax → Roth) and Roth conversion ladders can significantly reduce real tax drag. Consult a tax advisor for a personalized withdrawal strategy.</div>
     </div>
 
+    ${renderBridgePlanner(s)}
+
+    ${renderMilestoneTimeline(s)}
+
+    <div id="sensitivityPanel">${renderSensitivity(s)}</div>
+
     ${s.hasP?`<div class="card" style="margin-bottom:14px">
       <div class="card-title"><span class="dot partner-dot"></span> Household Combined Summary</div>
       <div class="grid-3">
@@ -1771,6 +1849,134 @@ function assetBar(name,val,total,color){
 }
 function hc(label,val,ok,note){
   return `<div class="stat-row"><div><div class="stat-row-label">${label}</div><div style="font-size:0.68rem;color:var(--text-dim)">${note}</div></div><div style="display:flex;align-items:center;gap:5px"><span style="font-size:0.84rem;font-weight:600;color:${ok?'var(--green)':'var(--fire-amber)'}">${val}</span><span>${ok?'✅':'⚠️'}</span></div></div>`;
+}
+
+function renderBridgePlanner(s) {
+  const projectedStartAge = s.fireYear !== null ? s.age + s.fireYear : s.retireAge;
+  const bridgeEndAge = 60;
+  const bridgeYears = Math.max(0, Math.ceil(59.5 - projectedStartAge));
+  const annualBridgeSpend = Math.max(0, s.expenses - s.pensionIncome);
+  const bridgeNeed = bridgeYears * annualBridgeSpend;
+  const emergencyCash = s.efund || 0;
+  const flexibleCash = Math.max(0, s.cash + (s.hasP ? s.pCash : 0) - emergencyCash);
+  const taxableBridge = s.totalTaxable;
+  const rothBridgeProxy = s.roth + s.roth401k + (s.hasP ? s.pRoth : 0);
+  const hsaMedicalReserve = s.hsa + (s.hasP ? s.pHSA : 0);
+  const availableBridge = taxableBridge + flexibleCash + rothBridgeProxy + hsaMedicalReserve;
+  const bridgeCoverage = bridgeNeed > 0 ? Math.min(100, Math.round(availableBridge / bridgeNeed * 100)) : 100;
+  const bridgeGap = Math.max(0, bridgeNeed - availableBridge);
+  const monthlyGap = bridgeYears > 0 && bridgeGap > 0 ? Math.ceil(bridgeGap / bridgeYears / 12) : 0;
+  const statusColor = bridgeNeed === 0 || availableBridge >= bridgeNeed ? 'var(--green)' : availableBridge >= bridgeNeed * 0.7 ? 'var(--fire-amber)' : 'var(--ember)';
+  const statusText = bridgeNeed === 0
+    ? 'No early-access gap'
+    : availableBridge >= bridgeNeed
+      ? 'Bridge covered'
+      : `${fmt(bridgeGap)} gap`;
+  const sources = [
+    { name:'Taxable brokerage', note:'Most flexible early-retirement bucket', value:taxableBridge, color:'#4ADE80' },
+    { name:'Flexible cash', note:'Cash above emergency fund', value:flexibleCash, color:'#818CF8' },
+    { name:'Roth balance proxy', note:'Contribution basis may be accessible; earnings have rules', value:rothBridgeProxy, color:'#FFB347' },
+    { name:'HSA medical reserve', note:'Useful for qualified medical expenses or saved receipts', value:hsaMedicalReserve, color:'#FFE066' },
+  ];
+  const sourceRows = sources.map(src => {
+    const width = bridgeNeed > 0 ? Math.min(100, src.value / bridgeNeed * 100) : 0;
+    return `<div class="bridge-source">
+      <div>
+        <div class="bridge-source-name"><span class="bridge-swatch" style="background:${src.color}"></span>${src.name}</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);margin-left:18px;margin-top:2px">${src.note}</div>
+      </div>
+      <div class="bridge-source-val">${fmt(src.value)}${bridgeNeed > 0 ? `<div style="font-size:0.64rem;color:var(--text-dim);font-weight:600">${Math.round(width)}% of need</div>` : ''}</div>
+    </div>`;
+  }).join('');
+  const track = sources.map(src => {
+    const width = bridgeNeed > 0 ? Math.min(100, src.value / bridgeNeed * 100) : 0;
+    return `<div class="bridge-segment" style="width:${width}%;background:${src.color}"></div>`;
+  }).join('');
+  const gapTip = bridgeNeed === 0
+    ? `Your projected FIRE age is ${projectedStartAge}, so the usual pre-59½ bridge is not a constraint in this model.`
+    : bridgeGap > 0
+      ? `To close the estimated gap before age 59½, consider directing about ${fmt(monthlyGap)}/mo toward taxable brokerage or building more flexible cash, then revisit withdrawal sequencing with a CPA.`
+      : `Your flexible buckets appear large enough to cover the estimated pre-59½ bridge. The next question is sequencing: taxable first, Roth basis carefully, HSA for medical costs, and pre-tax accounts through planned conversions.`;
+
+  return `<div class="card" id="bridgePlanner" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0"><span class="dot"></span> Withdrawal Bridge Planner</div>
+      <span style="font-size:0.68rem;padding:3px 9px;background:rgba(45,212,191,0.1);border:1px solid rgba(45,212,191,0.25);border-radius:20px;color:var(--teal)">Early access check</span>
+    </div>
+    <div class="bridge-summary">
+      <div class="bridge-pill"><div class="bridge-pill-label">Bridge Window</div><div class="bridge-pill-value">${bridgeYears > 0 ? `${projectedStartAge}–59½` : 'None'}</div></div>
+      <div class="bridge-pill"><div class="bridge-pill-label">Estimated Need</div><div class="bridge-pill-value">${fmt(bridgeNeed)}</div></div>
+      <div class="bridge-pill"><div class="bridge-pill-label">Available Buckets</div><div class="bridge-pill-value" style="color:var(--teal)">${fmt(availableBridge)}</div></div>
+      <div class="bridge-pill"><div class="bridge-pill-label">Status</div><div class="bridge-pill-value" style="color:${statusColor}">${statusText}</div></div>
+    </div>
+    ${bridgeNeed > 0 ? `<div class="bridge-track">${track}${bridgeCoverage < 100 ? `<div class="bridge-segment" style="width:${100-bridgeCoverage}%;background:var(--surface3)"></div>` : ''}</div>
+      <div style="display:flex;justify-content:space-between;gap:8px;font-size:0.68rem;color:var(--text-muted);margin-bottom:10px">
+        <span>${bridgeCoverage}% covered</span><span>${bridgeYears} yr${bridgeYears === 1 ? '' : 's'} × ${fmt(annualBridgeSpend)}/yr</span>
+      </div>` : ''}
+    <div class="grid-2" style="gap:14px">
+      <div>${sourceRows}</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px 14px">
+        <div style="font-size:0.76rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Suggested sequence</div>
+        <div class="stat-row"><span class="stat-row-label">1. Taxable brokerage</span><span class="stat-row-val" style="color:var(--green)">Most flexible</span></div>
+        <div class="stat-row"><span class="stat-row-label">2. Flexible cash buffer</span><span class="stat-row-val">Stability</span></div>
+        <div class="stat-row"><span class="stat-row-label">3. Roth contribution basis</span><span class="stat-row-val" style="color:var(--fire-amber)">Rules apply</span></div>
+        <div class="stat-row"><span class="stat-row-label">4. HSA for medical costs</span><span class="stat-row-val" style="color:var(--teal)">Receipts matter</span></div>
+        <div class="stat-row"><span class="stat-row-label">5. Roth conversion ladder</span><span class="stat-row-val">5-year clock</span></div>
+      </div>
+    </div>
+    <div class="itip" style="margin-top:10px"><span class="e">💡</span>${gapTip}</div>
+    <div class="itip" style="margin-top:8px"><span class="e">⚠️</span>This is a planning estimate, not tax advice. Roth contribution access, HSA reimbursements, and conversion ladders all have rules and documentation requirements.</div>
+  </div>`;
+}
+
+function renderMilestoneTimeline(s) {
+  const fireAge = s.fireYear !== null ? s.age + s.fireYear : null;
+  const milestones = [
+    { age:s.age, title:'Today', note:`${fmt(s.totalInv)} invested · ${Math.round(s.progress*100)}% to FIRE`, done:true },
+    { age:s.coastNum > 0 && s.totalInv >= s.coastNum ? s.age : null, title:'Coast FIRE', note:`Coast number: ${fmt(s.coastNum)}`, done:s.isCoast },
+    { age:fireAge, title:'Full FIRE', note:`Portfolio reaches ${fmt(s.fireNum)}`, done:s.progress >= 1 },
+    { age:60, title:'Age 59½ Access', note:'Traditional retirement account access generally opens', done:s.age >= 60 },
+    { age:s.ssStartAge, title:'Social Security Start', note:`Estimated ${fmt(s.totalSS)}/yr Social Security`, done:s.age >= s.ssStartAge },
+  ].filter(m => m.age !== null && m.age !== undefined)
+    .sort((a,b) => a.age - b.age);
+  return `<div class="card" id="milestoneTimeline" style="margin-bottom:14px">
+    <div class="card-title"><span class="dot"></span> Milestone Timeline</div>
+    <div class="timeline">
+      ${milestones.map(m => `<div class="timeline-item ${m.done ? 'done' : ''}">
+        <div class="timeline-age">Age ${m.age}</div>
+        <div><div class="timeline-title">${m.title}</div><div class="timeline-note">${m.note}</div></div>
+        <div class="timeline-status">${m.done ? 'Reached' : 'Planned'}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function sensitivityAge(inv, sav, fn, rr, age) {
+  const y = calcFY(inv, sav, fn, rr);
+  return y === null ? 'Beyond 60' : `Age ${age + y}`;
+}
+
+function renderSensitivity(s) {
+  const conservativeRR = Math.max(0.01, s.rr - 0.02);
+  const aggressiveRR = s.rr + 0.02;
+  const conservativeFN = s.fireNum * 1.12;
+  const aggressiveFN = s.fireNum * 0.9;
+  const scenarios = [
+    { cls:'', name:'Conservative', age:sensitivityAge(s.totalInv, s.totalC, conservativeFN, conservativeRR, s.age), note:`${Math.round(conservativeRR*100)}% return · 12% higher need` },
+    { cls:'base', name:'Base Case', age:sensitivityAge(s.totalInv, s.totalC, s.fireNum, s.rr, s.age), note:`${Math.round(s.rr*100)}% return · current spending` },
+    { cls:'', name:'Optimistic', age:sensitivityAge(s.totalInv, s.totalC, aggressiveFN, aggressiveRR, s.age), note:`${Math.round(aggressiveRR*100)}% return · 10% lower need` },
+  ];
+  return `<div class="card" style="margin-bottom:14px">
+    <div class="card-title"><span class="dot"></span> Assumption Sensitivity</div>
+    <div class="sensitivity-grid">
+      ${scenarios.map(x => `<div class="sensitivity-card ${x.cls}">
+        <div class="sensitivity-name">${x.name}</div>
+        <div class="sensitivity-age">${x.age}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:5px">${x.note}</div>
+      </div>`).join('')}
+    </div>
+    <div class="itip" style="margin-top:10px"><span class="e">💡</span>This gives a quick range around the straight-line projection. Real markets are lumpier than any of these scenarios.</div>
+  </div>`;
 }
 
 // ── GAUGE ──
@@ -2033,6 +2239,26 @@ function dismissDisclaimer() {
   disclaimerDismissed = true;
   const el = document.getElementById('disclaimerBanner');
   if (el) el.remove();
+}
+
+function jumpToDash(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (id === 'projSection') openSection('projContent','projChevron');
+  if (id === 'whatifSection') openSection('whatifContent','whatifChevron');
+  if (id === 'compareSection') openSection('compareContent','compareChevron');
+  if (id === 'historySection') openSection('historyContent','historyChevron');
+  if (id === 'tipsSection') openSection('tipsContent','tipsChevron');
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function openSection(contentId, chevronId) {
+  const el = document.getElementById(contentId);
+  const ch = document.getElementById(chevronId);
+  if (!el) return;
+  el.style.display = 'block';
+  if (ch) ch.textContent = '▾';
+  if (contentId === 'projContent') setTimeout(renderCharts, 100);
 }
 
 // ── EXPORT ──
@@ -2402,6 +2628,74 @@ function deleteProfile() {
   calculate({recordSnapshot:false});
 }
 
+function exportBackup() {
+  saveInputs();
+  const backup = {
+    app:'FIREtrack',
+    version:1,
+    exportedAt:new Date().toISOString(),
+    profiles:profilesStore?.profiles || [],
+    activeId:profilesStore?.activeId || null
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `firetrack-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importBackup(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const backup = JSON.parse(reader.result);
+      if (!Array.isArray(backup.profiles) || backup.profiles.length === 0) throw new Error('Missing profiles');
+      if (!confirm('Import this FIREtrack backup? It will replace local profiles and history in this browser.')) return;
+      profilesStore = {
+        activeId: backup.activeId || backup.profiles[0].id,
+        profiles: backup.profiles
+      };
+      persistProfilesStore();
+      loadInputs();
+      calculate({recordSnapshot:false});
+      showView('input');
+    } catch(e) {
+      alert('That backup file could not be imported.');
+    } finally {
+      input.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function runCheckIn() {
+  const steps = [
+    ['k401','Traditional 401k balance'],
+    ['rothIra','Roth IRA balance'],
+    ['brokerage','Brokerage balance'],
+    ['cash','Cash / HYSA balance'],
+    ['salary','Annual gross salary'],
+    ['expenses','Annual expenses'],
+    ['mortgage','Mortgage balance'],
+  ];
+  for (const [id, label] of steps) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const next = prompt(label, el.value || '0');
+    if (next === null) return;
+    if (next.trim() !== '') el.value = next.trim();
+  }
+  calculate({recordSnapshot:true});
+  showView('dashboard');
+  const hist = document.getElementById('historyContent');
+  if (hist) hist.style.display = 'block';
+  const ch = document.getElementById('historyChevron');
+  if (ch) ch.textContent = '▾';
+}
+
 // ── HISTORY SNAPSHOTS ──
 function loadHistory() {
   const profile = activeProfile();
@@ -2461,7 +2755,7 @@ function renderHistory() {
   if (snapshots.length === 0) {
     el.innerHTML = `<div class="empty"><div class="ei">📊</div>
       <p>No snapshots yet. Save a snapshot to record your first data point.</p>
-      <button class="btn btn-fire" onclick="showView('input')">← Go to Profile</button></div>`;
+      <button class="btn btn-fire" onclick="runCheckIn()">Start Check-In</button></div>`;
     return;
   }
 
@@ -2493,6 +2787,14 @@ function renderHistory() {
         <div class="card-title"><span class="dot"></span> FIRE Progress Change</div>
         <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.6rem;color:${progDelta>=0?'var(--green)':'var(--ember)'}">${sign(progDelta)}${progDelta}%</div>
         <div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px">toward FIRE number</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot"></span> Guided Check-In</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="font-size:0.82rem;color:var(--text-muted);line-height:1.5">Update key balances and save a clean snapshot for this profile.</div>
+        <button class="btn btn-fire" onclick="runCheckIn()">Start Check-In</button>
       </div>
     </div>
 
@@ -2607,6 +2909,9 @@ window.newProfile = newProfile;
 window.duplicateProfile = duplicateProfile;
 window.renameProfile = renameProfile;
 window.deleteProfile = deleteProfile;
+window.exportBackup = exportBackup;
+window.importBackup = importBackup;
+window.runCheckIn = runCheckIn;
 window.switchTab = switchTab;
 window.showView = showView;
 window.toggleMode = toggleMode;
@@ -2623,6 +2928,7 @@ window.exportEmail = exportEmail;
 window.showTT = showTT;
 window.showTTDynamic = showTTDynamic;
 window.toggleSection = toggleSection;
+window.jumpToDash = jumpToDash;
 window.toggleExportMenu = toggleExportMenu;
 window.closeExportMenu = closeExportMenu;
 window.exportPDF = exportPDF;
