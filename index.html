@@ -241,6 +241,9 @@ input,select {
   transition:border-color 0.2s,box-shadow 0.2s;
   outline:none; -webkit-appearance:none; appearance:none; min-height:42px;
 }
+input[type=number] { appearance:textfield; -moz-appearance:textfield; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .has-prefix input { padding-left:22px; }
 .input-wrap.has-suffix { position:relative; }
 .input-wrap.has-suffix input { padding-right:30px; }
@@ -1397,6 +1400,15 @@ function bindLiveCalculation() {
     el.addEventListener('input', scheduleLiveCalculate);
     el.addEventListener('change', scheduleLiveCalculate);
   });
+}
+
+function preventNumberWheelChanges() {
+  document.addEventListener('wheel', e => {
+    const el = document.activeElement;
+    if (el?.tagName === 'INPUT' && el.type === 'number') {
+      el.blur();
+    }
+  }, { passive:true });
 }
 
 function setLiveMetric(key, id, value) {
@@ -2890,6 +2902,7 @@ document.querySelectorAll('.ft-btn').forEach(btn => {
 renderTips();
 loadInputs();
 bindLiveCalculation();
+preventNumberWheelChanges();
 // Render a live preview immediately; only explicit saves create history snapshots.
 const hasSaved = (() => { try { return !!localStorage.getItem(LS_INPUTS); } catch(e) { return false; } })();
 if (hasSaved) {
