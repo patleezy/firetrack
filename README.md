@@ -63,8 +63,9 @@ Just open `index.html` in any browser.
 | File | Purpose |
 |------|---------|
 | `index.html` | Main app |
+| `vendor/` | Self-hosted Chart.js 4.4.0, hammer.js 2.0.8, chartjs-plugin-zoom 2.0.1 (no third-party script CDN) |
 | `og-image.png` | Social sharing preview image |
-| `vercel.json` | Vercel deployment config + security headers |
+| `vercel.json` | Vercel deployment config + security headers, including a Content Security Policy that blocks all outbound network requests (`connect-src 'none'`) |
 
 ## Disclaimer
 

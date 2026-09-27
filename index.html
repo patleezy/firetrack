@@ -35,9 +35,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="vendor/hammer.min.js"></script>
+<script src="vendor/chartjs-plugin-zoom.min.js"></script>
 <style>
 :root {
   color-scheme: dark;
@@ -2293,13 +2293,13 @@ function renderCompare() {
           return `<div class="compare-card ${isActive ? 'active' : ''}">
             <div class="compare-name"><span>${escHTML(profile.name)}</span>${isActive ? '<span class="compare-badge">Active</span>' : ''}</div>
             <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-bottom:10px">Open this profile once to calculate its comparison metrics.</div>
-            ${!isActive ? `<button class="btn btn-ghost" onclick="switchProfile('${profile.id}');showView('input')">Open Profile</button>` : ''}
+            ${!isActive ? `<button class="btn btn-ghost" data-profile-id="${escHTML(profile.id)}" onclick="switchProfile(this.dataset.profileId);showView('input')">Open Profile</button>` : ''}
           </div>`;
         }
         const fireAge = summary.fireAge ? `Age ${summary.fireAge}` : 'Beyond range';
         const years = summary.yearsToFI !== null ? `${summary.yearsToFI} yrs` : '—';
         return `<div class="compare-card ${isActive ? 'active' : ''}">
-          <div class="compare-name"><span>${escHTML(profile.name)}</span>${isActive ? '<span class="compare-badge">Active</span>' : `<button class="btn btn-ghost" style="padding:4px 9px;font-size:0.75rem" onclick="switchProfile('${profile.id}');showView('dashboard')">Open</button>`}</div>
+          <div class="compare-name"><span>${escHTML(profile.name)}</span>${isActive ? '<span class="compare-badge">Active</span>' : `<button class="btn btn-ghost" style="padding:4px 9px;font-size:0.75rem" data-profile-id="${escHTML(profile.id)}" onclick="switchProfile(this.dataset.profileId);showView('dashboard')">Open</button>`}</div>
           <div class="compare-row"><span class="compare-label">FIRE Number</span><span class="compare-value">${fmt(summary.fireNum)}${delta(summary.fireNum, base.fireNum, true)}</span></div>
           <div class="compare-row"><span class="compare-label">FIRE Age</span><span class="compare-value">${fireAge}${delta(summary.fireAge, base.fireAge, true, ' yrs')}</span></div>
           <div class="compare-row"><span class="compare-label">Years to FI</span><span class="compare-value">${years}${delta(summary.yearsToFI, base.yearsToFI, true, ' yrs')}</span></div>
@@ -2753,6 +2753,49 @@ function exportBackup() {
   URL.revokeObjectURL(a.href);
 }
 
+// Backup files may come from anywhere, so rebuild them from known fields only.
+// Ids are regenerated and strings are stripped of markup/quote characters so
+// imported values can never break out of the HTML they are rendered into.
+function cleanStr(value, max) {
+  return String(value ?? '').replace(/[<>"'`\\]/g, '').slice(0, max);
+}
+function cleanNum(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+function sanitizeBackup(backup) {
+  const profiles = backup.profiles.slice(0, 50).map((p, i) => {
+    if (!p || typeof p !== 'object') throw new Error('Bad profile');
+    const src = p.data && typeof p.data === 'object' ? p.data : {};
+    const data = {};
+    INPUT_IDS.forEach(key => { if (key in src) data[key] = cleanStr(src[key], 40); });
+    const history = (Array.isArray(p.history) ? p.history : []).slice(-60)
+      .filter(h => h && typeof h === 'object' && !isNaN(new Date(h.ts)))
+      .map(h => ({
+        ts: new Date(h.ts).toISOString(),
+        label: cleanStr(h.label, 40),
+        netWorth: cleanNum(h.netWorth) ?? 0,
+        investable: cleanNum(h.investable) ?? 0,
+        fireNum: cleanNum(h.fireNum) ?? 0,
+        progress: cleanNum(h.progress) ?? 0,
+        savRate: cleanNum(h.savRate) ?? 0,
+        fireAge: cleanNum(h.fireAge),
+      }));
+    const created = new Date(p.createdAt);
+    return {
+      oldId: p.id,
+      id: profileId() + i,
+      name: cleanStr(p.name, 60).trim() || `Profile ${i + 1}`,
+      data,
+      history,
+      createdAt: isNaN(created) ? new Date().toISOString() : created.toISOString()
+    };
+  });
+  const active = profiles.find(p => p.oldId === backup.activeId) || profiles[0];
+  profiles.forEach(p => delete p.oldId);
+  return { activeId: active.id, profiles };
+}
+
 function importBackup(input) {
   const file = input.files?.[0];
   if (!file) return;
@@ -2762,10 +2805,7 @@ function importBackup(input) {
       const backup = JSON.parse(reader.result);
       if (!Array.isArray(backup.profiles) || backup.profiles.length === 0) throw new Error('Missing profiles');
       if (!confirm('Import this FIREtrack backup? It will replace local profiles and history in this browser.')) return;
-      profilesStore = {
-        activeId: backup.activeId || backup.profiles[0].id,
-        profiles: backup.profiles
-      };
+      profilesStore = sanitizeBackup(backup);
       persistProfilesStore();
       loadInputs();
       calculate({recordSnapshot:false});
