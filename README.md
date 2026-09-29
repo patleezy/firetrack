@@ -23,6 +23,11 @@
 - 👤 Named local profiles for multiple plans or household scenarios
 - 📤 Export to PDF, CSV, text, or email
 - ♿ WCAG-focused legibility pass for font sizes, focus states, and color contrast
+- 🎲 Success odds: 1,000-run Monte Carlo simulation with adjustable market volatility
+- 💵 Today's-dollars / future-dollars toggle for projections
+- 📸 Shareable FIRE-number image (private details are opt-in, generated on-device)
+- 🗓️ Check-in reminder after 120 days without a snapshot
+- 📲 Installable, offline-capable app (PWA)
 - 🔒 100% local — all data stays in your browser (localStorage)
 
 ## Calculator Model
@@ -46,7 +51,7 @@ Recent formula updates make the surrounding assumptions more explicit:
 
 ## Deployment
 
-Single static HTML file — deploy anywhere.
+Static files only — deploy anywhere. When `vendor/` files or icons change, bump `CACHE` in `sw.js` so installed apps pick them up.
 
 ### Vercel (recommended)
 ```bash
@@ -64,6 +69,9 @@ Just open `index.html` in any browser.
 |------|---------|
 | `index.html` | Main app |
 | `vendor/` | Self-hosted Chart.js 4.4.0, hammer.js 2.0.8, chartjs-plugin-zoom 2.0.1 (no third-party script CDN) |
+| `manifest.webmanifest` | PWA manifest (install to home screen) |
+| `sw.js` | Service worker that caches the app's own files for offline use; never touches financial data |
+| `icons/` | App icons for home screen / install |
 | `og-image.png` | Social sharing preview image |
 | `vercel.json` | Vercel deployment config + security headers, including a Content Security Policy that blocks all outbound network requests (`connect-src 'none'`) |
 
