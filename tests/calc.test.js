@@ -9,7 +9,7 @@ const vm = require('node:vm');
 const code = fs.readFileSync(path.join(__dirname, '..', 'calc.js'), 'utf8');
 const calc = vm.runInThisContext(`(function () {\n${code}\nreturn { presentValueOfIncome, projectFireYear,
   computeFireMath, buildProjection, computeState, runMonteCarlo, sanitizeBackup, cleanStr, INPUT_IDS,
-  MEDICARE_AGE, FIRE_TYPES };\n})`, { filename: 'calc.js' })();
+  MEDICARE_AGE, FIRE_TYPES, CONTRIB_LIMITS, limitsFor, fillLimitTokens };\n})`, { filename: 'calc.js' })();
 
 const SAMPLE = {
   age: 32, retireAge: 50, salary: 95000, bonus: 8000, expenses: 55000, emergencyMonths: 4,
@@ -139,4 +139,24 @@ test('backup import rejects non-boolean partner flags and unknown FIRE types', (
   assert.equal(out.profiles[0].data._fireType, undefined);
   const many = calc.sanitizeBackup({ profiles: Array.from({ length: 80 }, () => ({ data: {} })) });
   assert.equal(many.profiles.length, 50);
+});
+
+test('contribution limits pick the right tax year', () => {
+  assert.equal(calc.limitsFor(2026).k401, 24500);
+  assert.equal(calc.limitsFor(2027).k401, 25500);
+  assert.equal(calc.limitsFor(2027).hsaSelf, 4500);
+  const latest = Math.max(...Object.keys(calc.CONTRIB_LIMITS).map(Number));
+  assert.equal(calc.limitsFor(latest + 3).year, latest, 'future years fall back to the latest known');
+  assert.equal(calc.limitsFor(1999).year, Math.min(...Object.keys(calc.CONTRIB_LIMITS).map(Number)));
+  for (const L of Object.values(calc.CONTRIB_LIMITS)) {
+    assert.ok(L.k401CatchUp6063 > L.k401CatchUp50 && L.hsaFamily > L.hsaSelf && L.total415c > L.k401);
+    assert.ok(L.rothSingle[0] < L.rothSingle[1] && L.rothJoint[0] < L.rothJoint[1]);
+  }
+});
+
+test('help-text placeholders are filled with formatted limits', () => {
+  const L = calc.limitsFor(2026);
+  assert.equal(calc.fillLimitTokens('{{year}}: {{k401}} ({{k401_50}} if 50+)', L), '2026: $24,500 ($32,500 if 50+)');
+  assert.equal(calc.fillLimitTokens('{{k401_6063}} / {{ira_50}} / {{rothJoint}}', L), '$35,750 / $8,600 / $242K–$252K');
+  assert.equal(calc.fillLimitTokens('{{unknown}} stays', L), '{{unknown}} stays');
 });

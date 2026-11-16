@@ -77,6 +77,10 @@ Just open `index.html` in any browser.
 | `og-image.png` | Social sharing preview image |
 | `vercel.json` | Vercel deployment config + security headers, including a Content Security Policy that blocks all outbound network requests (`connect-src 'none'`) |
 
+## Yearly upkeep
+
+IRS contribution limits live in `CONTRIB_LIMITS` in `calc.js`. Each November, when the IRS announces next year's 401(k)/IRA limits (HSA limits come out around May), add a new year entry. The app picks the current year automatically, and help text fills in the figures from that table. Then bump `CACHE` in `sw.js`.
+
 ## Tests
 
 No dependencies needed; uses Node's built-in test runner (Node 18+):

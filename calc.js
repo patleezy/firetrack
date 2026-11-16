@@ -1,6 +1,43 @@
 // FIREtrack calculation core: pure functions with no DOM access, shared by the page
 // and by tests/calc.test.js. Loaded as a classic script so file:// still works.
 
+// IRS contribution limits by tax year. Sources: Notice 2025-67 and Rev. Proc. 2025-19 (2026);
+// Notice 2026-66 and Rev. Proc. 2026-24 (2027). Add a new year here each November.
+const CONTRIB_LIMITS = {
+  2026: { k401: 24500, k401CatchUp50: 8000, k401CatchUp6063: 11250, total415c: 72000,
+          ira: 7500, iraCatchUp50: 1100, hsaSelf: 4400, hsaFamily: 8750, hsaCatchUp55: 1000,
+          rothSingle: [153000, 168000], rothJoint: [242000, 252000] },
+  2027: { k401: 25500, k401CatchUp50: 8500, k401CatchUp6063: 11750, total415c: 75000,
+          ira: 7500, iraCatchUp50: 1100, hsaSelf: 4500, hsaFamily: 9000, hsaCatchUp55: 1000,
+          rothSingle: [158000, 173000], rothJoint: [250000, 260000] },
+};
+
+// Limits for a tax year: that year if known, else the latest earlier year, else the earliest.
+function limitsFor(year) {
+  const years = Object.keys(CONTRIB_LIMITS).map(Number).sort((a, b) => a - b);
+  const pick = years.filter(y => y <= year).pop() ?? years[0];
+  return { year: pick, ...CONTRIB_LIMITS[pick] };
+}
+
+// Placeholder values for help text, e.g. "{{k401}}" -> "$24,500".
+function limitTokens(L) {
+  const usd = n => '$' + n.toLocaleString('en-US');
+  const k = n => '$' + Math.round(n / 1000) + 'K';
+  return {
+    year: String(L.year),
+    k401: usd(L.k401), k401_50: usd(L.k401 + L.k401CatchUp50), k401_6063: usd(L.k401 + L.k401CatchUp6063),
+    k401_couple: usd(L.k401 * 2), total415c: usd(L.total415c),
+    ira: usd(L.ira), ira_50: usd(L.ira + L.iraCatchUp50),
+    hsaSelf: usd(L.hsaSelf), hsaFamily: usd(L.hsaFamily), hsaCatchUp55: usd(L.hsaCatchUp55),
+    rothSingle: `${k(L.rothSingle[0])}–${k(L.rothSingle[1])}`, rothJoint: `${k(L.rothJoint[0])}–${k(L.rothJoint[1])}`,
+  };
+}
+
+function fillLimitTokens(text, L) {
+  const t = limitTokens(L);
+  return String(text).replace(/\{\{(\w+)\}\}/g, (m, key) => (key in t ? t[key] : m));
+}
+
 function presentValueOfIncome(income, years, rr) {
   if (income <= 0 || years <= 0) return 0;
   return rr > 0 ? income * (1 - Math.pow(1 + rr, -years)) / rr : income * years;
