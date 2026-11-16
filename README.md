@@ -68,7 +68,7 @@ Just open `index.html` in any browser.
 | File | Purpose |
 |------|---------|
 | `index.html` | Main app |
-| `vendor/` | Self-hosted Chart.js 4.4.0, hammer.js 2.0.8, chartjs-plugin-zoom 2.0.1 (no third-party script CDN) |
+| `vendor/` | Self-hosted Chart.js 4.4.0, hammer.js 2.0.8, chartjs-plugin-zoom 2.0.1, and DM Sans / DM Serif Display fonts (SIL OFL, licenses in `vendor/fonts/`). No third-party CDN requests. |
 | `manifest.webmanifest` | PWA manifest (install to home screen) |
 | `sw.js` | Service worker that caches the app's own files for offline use; never touches financial data |
 | `icons/` | App icons for home screen / install |

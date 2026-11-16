@@ -1,13 +1,20 @@
 // FIREtrack service worker: caches the app's own files so it works offline.
 // It never stores or sends any financial data; that stays in localStorage.
 // Bump CACHE whenever vendor files or icons change.
-const CACHE = 'firetrack-v1';
+const CACHE = 'firetrack-v2';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
   '/vendor/chart.umd.min.js',
   '/vendor/hammer.min.js',
   '/vendor/chartjs-plugin-zoom.min.js',
+  '/vendor/fonts/dmsans-rP2Hp2ywxg089UriCZ2IHSeH.woff2',
+  '/vendor/fonts/dmsans-rP2Hp2ywxg089UriCZOIHQ.woff2',
+  '/vendor/fonts/dmserifdisplay--nFhOHM81r4j6k0gjAW3mujVU2B2G_VB0PD2.woff2',
+  '/vendor/fonts/dmserifdisplay--nFhOHM81r4j6k0gjAW3mujVU2B2G_VB3vD212k.woff2',
+  '/vendor/fonts/dmserifdisplay--nFnOHM81r4j6k0gjAW3mujVU2B2G_5x0ujy.woff2',
+  '/vendor/fonts/dmserifdisplay--nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0g.woff2',
+  '/vendor/fonts/fonts.css',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png'
@@ -28,7 +35,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
-  // Only handle our own GET requests; fonts and everything else pass through.
+  // Only handle our own GET requests; anything cross-origin passes through.
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
