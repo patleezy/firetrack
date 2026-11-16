@@ -724,6 +724,20 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     </div>
   </div>
 </div>
+<div class="tt-overlay" id="checkinOverlay" onclick="closeCheckIn(event)">
+  <form class="tt-box share-box" id="checkinForm" role="dialog" aria-modal="true" aria-labelledby="checkinTitle" onsubmit="event.preventDefault();saveCheckIn()">
+    <div class="tt-header">
+      <div class="tt-title" id="checkinTitle">✅ Check-in</div>
+      <button type="button" class="tt-close" onclick="closeCheckIn()" aria-label="Close">✕</button>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:12px">Update what changed, then save a snapshot. Leave a field as-is if it hasn't changed.</p>
+    <div class="two-col" id="checkinFields" style="margin-bottom:14px"></div>
+    <div class="share-actions">
+      <button type="submit" class="btn btn-fire">Save snapshot</button>
+      <button type="button" class="btn btn-ghost" onclick="closeCheckIn()">Cancel</button>
+    </div>
+  </form>
+</div>
 <div class="tt-overlay" id="ttOverlay" onclick="closeTT(event)">
   <div class="tt-box">
     <div class="tt-header">
@@ -1637,10 +1651,39 @@ function buildProjection({age, totalInv, totalC, fireNum, fireYear, expenses, pe
 }
 
 // ── CALCULATE ──
-function calculate(options = {}) {
-  const recordSnapshot = options.recordSnapshot === true;
+// Reads plan inputs from the live form.
+function domInputSource() {
+  const activeFT = document.querySelector('.ft-btn.active');
+  return {
+    gv,
+    raw: id => document.getElementById(id)?.value ?? '',
+    hasP: pOn(),
+    fireType: activeFT ? activeFT.dataset.ft : 'regular',
+  };
+}
+
+// Reads plan inputs from a saved profile, falling back to the form's built-in defaults
+// for fields the profile predates (never the currently loaded profile's values).
+function dataInputSource(data) {
+  const raw = id => {
+    if (data && data[id] !== undefined) return String(data[id]);
+    const el = document.getElementById(id);
+    if (!el) return '';
+    if (el.tagName === 'SELECT') return ([...el.options].find(o => o.defaultSelected) || el.options[0])?.value ?? '';
+    return el.defaultValue;
+  };
+  return {
+    gv: id => parseFloat(raw(id)) || 0,
+    raw,
+    hasP: !!data?._partnerOpen,
+    fireType: data?._fireType || 'regular',
+  };
+}
+
+function computeState(src) {
+  const gv = src.gv;
   const age = gv('age'), retireAge = gv('retireAge'), ytf = Math.max(retireAge-age,1);
-  const hasP = pOn();
+  const hasP = src.hasP;
 
   const salary=gv('salary'),bonus=gv('bonus'),rsus=gv('rsus'),side=gv('sideIncome');
   const pSalary=hasP?gv('partnerSalary'):0, pBonus=hasP?gv('partnerBonus'):0, pRSUs=hasP?gv('partnerRSUs'):0, pSide=hasP?gv('partnerSideIncome'):0;
@@ -1669,11 +1712,9 @@ function calculate(options = {}) {
   const pRoth=hasP?gv('partnerRothIra'):0, pHSA=hasP?gv('partnerHSA'):0, pBrok=hasP?gv('partnerBrokerage'):0;
   const pCash=hasP?gv('partnerCash'):0;
 
-  const ccRateRaw = parseFloat(document.getElementById('ccRate')?.value);
+  const ccRateRaw = parseFloat(src.raw('ccRate'));
   const mortgage=gv('mortgage'), stuLoans=gv('studentLoans'), carL=gv('carLoan'), ccD=gv('ccDebt'), ccRate=Number.isFinite(ccRateRaw) ? ccRateRaw : 24.99;
   const rr = gv('returnRate')/100;
-  const returnWarn = document.getElementById('returnWarn');
-  if (returnWarn) returnWarn.style.display = rr > 0.09 ? 'flex' : 'none';
   const contribGrowth = Math.min(10, Math.max(0, gv('contribGrowth'))) / 100;
   const healthPre65 = Math.max(0, gv('healthPre65'));
   const rothConversion = Math.max(0, gv('rothConversion'));
@@ -1728,10 +1769,9 @@ function calculate(options = {}) {
   const isCoast = coastNum > 0 && totalInv >= coastNum;
   const {pd, pl} = buildProjection({age,totalInv,totalC,fireNum,fireYear,expenses,pensionIncome,socialSecurityIncome:totalSS,ssStartAge,rr,contribGrowth,healthPre65});
 
-  const activeFT = document.querySelector('.ft-btn.active');
-  const fireType = activeFT ? activeFT.dataset.ft : 'regular';
+  const fireType = src.fireType;
 
-  state = { age,retireAge,ytf,hasP,youInc,partInc,totalInc,currentExpenses,retireExpenses,expenses,swr,
+  return { age,retireAge,ytf,hasP,youInc,partInc,totalInc,currentExpenses,retireExpenses,expenses,swr,
     k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pensionIncome,col,p401,pRoth,pHSA,pBrok,pCash,
     totalAssets,totalDebts,netWorth,totalInv,youInv,partInv,youAssets,partAssets,
     fireNum,adjExp,savRate,totalC,youC,partC,progress,pd,pl,fireYear,
@@ -1740,7 +1780,13 @@ function calculate(options = {}) {
     totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate,taxAdjustedFireNum,
     ssGapYears,ssGapSurcharge,ssStartAge,fireType,
     contribGrowth,healthPre65,healthGapYears,healthSurcharge,rothConversion,bridgeStartAge };
+}
 
+function calculate(options = {}) {
+  const recordSnapshot = options.recordSnapshot === true;
+  state = computeState(domInputSource());
+  const returnWarn = document.getElementById('returnWarn');
+  if (returnWarn) returnWarn.style.display = state.rr > 0.09 ? 'flex' : 'none';
   calculated = true;
   saveInputs();
   const profile = activeProfile();
@@ -2149,18 +2195,39 @@ function sensitivityAge(inv, sav, fn, rr, age) {
   return y === null ? 'Beyond 60' : `Age ${age + y}`;
 }
 
+const SENS_RETURN_OPTS = [1, 2, 3];
+const SENS_SPEND_OPTS = [5, 10, 20];
+
+function setSensitivity(kind, value) {
+  const v = Number(value);
+  if (kind === 'ret' && SENS_RETURN_OPTS.includes(v)) prefs.sensRet = v;
+  if (kind === 'spend' && SENS_SPEND_OPTS.includes(v)) prefs.sensSpend = v;
+  savePrefs();
+  const panel = document.getElementById('sensitivityPanel');
+  if (panel && calculated) panel.innerHTML = renderSensitivity(state);
+}
+
 function renderSensitivity(s) {
-  const conservativeRR = Math.max(0.01, s.rr - 0.02);
-  const aggressiveRR = s.rr + 0.02;
-  const conservativeFN = s.fireNum * 1.12;
-  const aggressiveFN = s.fireNum * 0.9;
+  const ret = prefs.sensRet / 100, spend = prefs.sensSpend / 100;
+  const pctLabel = r => `${+(r * 100).toFixed(1)}%`;
+  const conservativeRR = Math.max(0.01, s.rr - ret);
+  const aggressiveRR = s.rr + ret;
+  const conservativeFN = s.fireNum * (1 + spend);
+  const aggressiveFN = s.fireNum * (1 - spend);
   const scenarios = [
-    { cls:'', name:'Conservative', age:sensitivityAge(s.totalInv, s.totalC, conservativeFN, conservativeRR, s.age), note:`${Math.round(conservativeRR*100)}% return · 12% higher need` },
-    { cls:'base', name:'Base Case', age:sensitivityAge(s.totalInv, s.totalC, s.fireNum, s.rr, s.age), note:`${Math.round(s.rr*100)}% return · current spending` },
-    { cls:'', name:'Optimistic', age:sensitivityAge(s.totalInv, s.totalC, aggressiveFN, aggressiveRR, s.age), note:`${Math.round(aggressiveRR*100)}% return · 10% lower need` },
+    { cls:'', name:'Conservative', age:sensitivityAge(s.totalInv, s.totalC, conservativeFN, conservativeRR, s.age), note:`${pctLabel(conservativeRR)} return · ${prefs.sensSpend}% higher need` },
+    { cls:'base', name:'Base Case', age:sensitivityAge(s.totalInv, s.totalC, s.fireNum, s.rr, s.age), note:`${pctLabel(s.rr)} return · current spending` },
+    { cls:'', name:'Optimistic', age:sensitivityAge(s.totalInv, s.totalC, aggressiveFN, aggressiveRR, s.age), note:`${pctLabel(aggressiveRR)} return · ${prefs.sensSpend}% lower need` },
   ];
+  const opts = (list, cur) => list.map(v => `<option value="${v}" ${v === cur ? 'selected' : ''}>±${v}%</option>`).join('');
   return `<div class="card" style="margin-bottom:14px">
-    <div class="card-title"><span class="dot"></span> Assumption Sensitivity</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:13px">
+      <div class="card-title" style="margin-bottom:0"><span class="dot"></span> Assumption Sensitivity</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <label class="infl-input">Return <select onchange="setSensitivity('ret',this.value)" aria-label="Return swing">${opts(SENS_RETURN_OPTS, prefs.sensRet)}</select></label>
+        <label class="infl-input">Spending <select onchange="setSensitivity('spend',this.value)" aria-label="Spending swing">${opts(SENS_SPEND_OPTS, prefs.sensSpend)}</select></label>
+      </div>
+    </div>
     <div class="sensitivity-grid">
       ${scenarios.map(x => `<div class="sensitivity-card ${x.cls}">
         <div class="sensitivity-name">${x.name}</div>
@@ -2409,7 +2476,14 @@ function renderCompare() {
   }
 
   const active = activeProfile();
-  const base = active?.summary || profileSummaryFromState(state);
+  const base = profileSummaryFromState(state);
+  // Recompute every profile from its saved inputs so cards never show stale numbers.
+  const liveSummary = profile => {
+    if (profile.id === profilesStore.activeId) return base;
+    if (!profile.data) return null;
+    try { return profileSummaryFromState(computeState(dataInputSource(profile.data))); }
+    catch (e) { return null; }
+  };
   const delta = (value, baseValue, lowerIsBetter = false, suffix = '') => {
     if (value === null || value === undefined || baseValue === null || baseValue === undefined || value === baseValue) return '';
     const diff = value - baseValue;
@@ -2423,7 +2497,7 @@ function renderCompare() {
     <div class="section-sub">Use local profiles as scenarios. Duplicate a profile, change the assumptions, and compare FIRE outcomes without retyping your base info.</div>
     <div class="compare-grid">
       ${profiles.map(profile => {
-        const summary = profile.summary;
+        const summary = liveSummary(profile);
         const isActive = profile.id === profilesStore.activeId;
         if (!summary) {
           return `<div class="compare-card ${isActive ? 'active' : ''}">
@@ -2673,7 +2747,7 @@ const INPUT_IDS = [
   'age','retireAge','dependents','filingStatus',
   'salary','bonus','rsus','sideIncome',
   'partnerAge','partnerRetireAge','partnerSalary','partnerBonus','partnerRSUs','partnerSideIncome',
-  'partner401k','partner401kContrib','partner401kMatch','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
+  'partner401k','partner401kContrib','partner401kMatch','partnerRothIra','partnerHSA','partnerBrokerage','partnerCash','partnerSS',
   'expenses','retireExpenses','healthPre65','emergencyMonths','contribGrowth','rothConversion',
   'k401','roth401k','k401Contrib','k401Match','rothIra','rothIraContrib','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
   'homeEquity','cash','college','pension',
@@ -2960,26 +3034,53 @@ function importBackup(input) {
   reader.readAsText(file);
 }
 
+const CHECKIN_FIELDS = [
+  ['k401','Traditional 401k balance','$'],
+  ['rothIra','Roth IRA balance','$'],
+  ['brokerage','Brokerage balance','$'],
+  ['cash','Cash / HYSA balance','$'],
+  ['salary','Annual gross salary','$'],
+  ['expenses','Current annual spending','$'],
+  ['retireExpenses','Retirement spending (blank = current)','$'],
+  ['mortgage','Mortgage balance','$'],
+  ['ccDebt','Credit card debt','$'],
+  ['ccRate','Credit card APR','%'],
+];
+let checkinReturnFocus = null;
+
 function runCheckIn() {
-  const steps = [
-    ['k401','Traditional 401k balance'],
-    ['rothIra','Roth IRA balance'],
-    ['brokerage','Brokerage balance'],
-    ['cash','Cash / HYSA balance'],
-    ['salary','Annual gross salary'],
-    ['expenses','Current annual household spending'],
-    ['retireExpenses','Expected annual retirement spending (blank = same as current)'],
-    ['mortgage','Mortgage balance'],
-    ['ccDebt','Credit card debt'],
-    ['ccRate','Credit card APR'],
-  ];
-  for (const [id, label] of steps) {
-    const el = document.getElementById(id);
-    if (!el) continue;
-    const next = prompt(label, el.value || '0');
-    if (next === null) return;
-    if (next.trim() !== '') el.value = next.trim();
-  }
+  const wrap = document.getElementById('checkinFields');
+  wrap.innerHTML = CHECKIN_FIELDS.map(([id, label, unit]) => `<div class="form-group">
+      <label for="ci_${id}">${label}</label>
+      <div class="input-wrap ${unit === '$' ? 'has-prefix' : 'has-suffix'}">
+        ${unit === '$' ? '<span class="input-prefix">$</span>' : ''}
+        <input type="number" id="ci_${id}" step="any" min="0" inputmode="decimal">
+        ${unit === '%' ? '<span class="input-suffix">%</span>' : ''}
+      </div></div>`).join('');
+  CHECKIN_FIELDS.forEach(([id]) => {
+    document.getElementById('ci_' + id).value = document.getElementById(id)?.value ?? '';
+  });
+  checkinReturnFocus = document.activeElement;
+  document.getElementById('checkinOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('ci_' + CHECKIN_FIELDS[0][0]).focus();
+}
+
+function closeCheckIn(e) {
+  if (e && e.target !== document.getElementById('checkinOverlay')) return;
+  document.getElementById('checkinOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  checkinReturnFocus?.focus?.();
+}
+
+function saveCheckIn() {
+  CHECKIN_FIELDS.forEach(([id]) => {
+    const src = document.getElementById(id);
+    const next = document.getElementById('ci_' + id).value.trim();
+    if (!src) return;
+    if (next !== '' || id === 'retireExpenses') src.value = next;
+  });
+  closeCheckIn();
   calculate({recordSnapshot:true});
   showView('dashboard');
   const hist = document.getElementById('historyContent');
@@ -3187,6 +3288,8 @@ try { Object.assign(prefs, JSON.parse(localStorage.getItem(LS_PREFS)) || {}); } 
 if (!['today','future'].includes(prefs.dollars)) prefs.dollars = 'today';
 prefs.inflation = Math.min(15, Math.max(0, Number(prefs.inflation) || 0));
 if (![10,15,18].includes(prefs.vol)) prefs.vol = 15;
+if (![1,2,3].includes(prefs.sensRet)) prefs.sensRet = 2;
+if (![5,10,20].includes(prefs.sensSpend)) prefs.sensSpend = 10;
 if (!prefs.snooze || typeof prefs.snooze !== 'object') prefs.snooze = {};
 function savePrefs() { try { localStorage.setItem(LS_PREFS, JSON.stringify(prefs)); } catch(e) {} }
 
@@ -3430,6 +3533,15 @@ async function shareShareCard() {
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('shareOverlay')?.classList.contains('open')) closeShareCard();
+  const ci = document.getElementById('checkinOverlay');
+  if (!ci?.classList.contains('open')) return;
+  if (e.key === 'Escape') { closeCheckIn(); return; }
+  if (e.key === 'Tab') {
+    const f = [...ci.querySelectorAll('input,button')];
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
 });
 
 // ── OFFLINE / INSTALLABLE APP ──
@@ -3463,6 +3575,9 @@ window.deleteProfile = deleteProfile;
 window.exportBackup = exportBackup;
 window.importBackup = importBackup;
 window.runCheckIn = runCheckIn;
+window.closeCheckIn = closeCheckIn;
+window.setSensitivity = setSensitivity;
+window.saveCheckIn = saveCheckIn;
 window.switchTab = switchTab;
 window.showView = showView;
 window.toggleMode = toggleMode;
