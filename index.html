@@ -724,6 +724,20 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
     </div>
   </div>
 </div>
+<div class="tt-overlay" id="checkinOverlay" onclick="closeCheckIn(event)">
+  <form class="tt-box share-box" id="checkinForm" role="dialog" aria-modal="true" aria-labelledby="checkinTitle" onsubmit="event.preventDefault();saveCheckIn()">
+    <div class="tt-header">
+      <div class="tt-title" id="checkinTitle">✅ Check-in</div>
+      <button type="button" class="tt-close" onclick="closeCheckIn()" aria-label="Close">✕</button>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:12px">Update what changed, then save a snapshot. Leave a field as-is if it hasn't changed.</p>
+    <div class="two-col" id="checkinFields" style="margin-bottom:14px"></div>
+    <div class="share-actions">
+      <button type="submit" class="btn btn-fire">Save snapshot</button>
+      <button type="button" class="btn btn-ghost" onclick="closeCheckIn()">Cancel</button>
+    </div>
+  </form>
+</div>
 <div class="tt-overlay" id="ttOverlay" onclick="closeTT(event)">
   <div class="tt-box">
     <div class="tt-header">
@@ -2960,26 +2974,53 @@ function importBackup(input) {
   reader.readAsText(file);
 }
 
+const CHECKIN_FIELDS = [
+  ['k401','Traditional 401k balance','$'],
+  ['rothIra','Roth IRA balance','$'],
+  ['brokerage','Brokerage balance','$'],
+  ['cash','Cash / HYSA balance','$'],
+  ['salary','Annual gross salary','$'],
+  ['expenses','Current annual spending','$'],
+  ['retireExpenses','Retirement spending (blank = current)','$'],
+  ['mortgage','Mortgage balance','$'],
+  ['ccDebt','Credit card debt','$'],
+  ['ccRate','Credit card APR','%'],
+];
+let checkinReturnFocus = null;
+
 function runCheckIn() {
-  const steps = [
-    ['k401','Traditional 401k balance'],
-    ['rothIra','Roth IRA balance'],
-    ['brokerage','Brokerage balance'],
-    ['cash','Cash / HYSA balance'],
-    ['salary','Annual gross salary'],
-    ['expenses','Current annual household spending'],
-    ['retireExpenses','Expected annual retirement spending (blank = same as current)'],
-    ['mortgage','Mortgage balance'],
-    ['ccDebt','Credit card debt'],
-    ['ccRate','Credit card APR'],
-  ];
-  for (const [id, label] of steps) {
-    const el = document.getElementById(id);
-    if (!el) continue;
-    const next = prompt(label, el.value || '0');
-    if (next === null) return;
-    if (next.trim() !== '') el.value = next.trim();
-  }
+  const wrap = document.getElementById('checkinFields');
+  wrap.innerHTML = CHECKIN_FIELDS.map(([id, label, unit]) => `<div class="form-group">
+      <label for="ci_${id}">${label}</label>
+      <div class="input-wrap ${unit === '$' ? 'has-prefix' : 'has-suffix'}">
+        ${unit === '$' ? '<span class="input-prefix">$</span>' : ''}
+        <input type="number" id="ci_${id}" step="any" min="0" inputmode="decimal">
+        ${unit === '%' ? '<span class="input-suffix">%</span>' : ''}
+      </div></div>`).join('');
+  CHECKIN_FIELDS.forEach(([id]) => {
+    document.getElementById('ci_' + id).value = document.getElementById(id)?.value ?? '';
+  });
+  checkinReturnFocus = document.activeElement;
+  document.getElementById('checkinOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('ci_' + CHECKIN_FIELDS[0][0]).focus();
+}
+
+function closeCheckIn(e) {
+  if (e && e.target !== document.getElementById('checkinOverlay')) return;
+  document.getElementById('checkinOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  checkinReturnFocus?.focus?.();
+}
+
+function saveCheckIn() {
+  CHECKIN_FIELDS.forEach(([id]) => {
+    const src = document.getElementById(id);
+    const next = document.getElementById('ci_' + id).value.trim();
+    if (!src) return;
+    if (next !== '' || id === 'retireExpenses') src.value = next;
+  });
+  closeCheckIn();
   calculate({recordSnapshot:true});
   showView('dashboard');
   const hist = document.getElementById('historyContent');
@@ -3430,6 +3471,15 @@ async function shareShareCard() {
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('shareOverlay')?.classList.contains('open')) closeShareCard();
+  const ci = document.getElementById('checkinOverlay');
+  if (!ci?.classList.contains('open')) return;
+  if (e.key === 'Escape') { closeCheckIn(); return; }
+  if (e.key === 'Tab') {
+    const f = [...ci.querySelectorAll('input,button')];
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
 });
 
 // ── OFFLINE / INSTALLABLE APP ──
@@ -3463,6 +3513,8 @@ window.deleteProfile = deleteProfile;
 window.exportBackup = exportBackup;
 window.importBackup = importBackup;
 window.runCheckIn = runCheckIn;
+window.closeCheckIn = closeCheckIn;
+window.saveCheckIn = saveCheckIn;
 window.switchTab = switchTab;
 window.showView = showView;
 window.toggleMode = toggleMode;
