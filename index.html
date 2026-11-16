@@ -1010,6 +1010,11 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="retireExpenses" placeholder="Same as current"></div>
           </div>
           <div class="form-group">
+            <div class="label-row"><label>Healthcare Before Medicare (per year)</label>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Healthcare Before Medicare" data-tt-b="Extra yearly health insurance and out-of-pocket costs between your FIRE age and 65, when Medicare starts. Leave blank if it's already in your retirement spending.<br><br>ACA marketplace premiums for early retirees often run $6,000–$15,000/yr per person before subsidies, depending on age, location and income.<br><br>This is added to spending only for the years before 65, and the extra cost is added to your FIRE Number." data-tt-g="Healthcare">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="healthPre65" placeholder="0"></div>
+          </div>
+          <div class="form-group">
             <div class="label-row"><label>Emergency Fund (months covered)</label>
             <button class="ib" onclick="showTT(this)" data-tt-t="Emergency Fund" data-tt-b="How many months of current household expenses you have in liquid, accessible cash. Financial experts recommend 3–6 months.<br><br>FIRE practitioners often hold 1–2 <em>years</em> in cash/short bonds as a sequence-of-returns buffer — protecting against having to sell investments at a loss early in retirement when markets are down." data-tt-g="Foundation">i</button></div>
             <input type="number" id="emergencyMonths" value="4">
@@ -1174,8 +1179,19 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <input type="range" id="returnRate" min="3" max="12" value="7" step="0.5" oninput="document.getElementById('returnVal').textContent=this.value+'%'; scheduleLiveCalculate()">
           <div class="itip"><span class="e">💡</span>JL Collins: long-term index investors have historically earned ~7% real. Use 5–6% if you want to be conservative.</div>
+          <div class="itip" id="returnWarn" role="alert" style="display:none;border:1px solid rgba(255,179,71,0.4);color:var(--fire-amber)"><span class="e">⚠️</span><span>Above 9% real is unusually high. If you used a headline market return like 10%, that number includes inflation. Subtract ~3% to get the real return this calculator expects.</span></div>
         </div>
         <div class="two-col">
+          <div class="form-group">
+            <div class="label-row"><label>Real Raise per Year</label>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Real Raise per Year" data-tt-b="How much your yearly savings grow above inflation, for example from raises or promotions. Your annual contributions grow by this rate each year until FIRE.<br><br><strong>0%</strong> keeps savings flat in today's dollars (the cautious default).<br><strong>1–2%</strong> is typical for steady career growth.<br><br>Use this only if raises will actually go to savings rather than lifestyle." data-tt-g="Income Growth">i</button></div>
+            <div class="input-wrap has-suffix"><input type="number" id="contribGrowth" value="0" min="0" max="10" step="0.5"><span class="input-suffix">%</span></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Planned Roth Conversion (per year)</label>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Roth Conversion Ladder" data-tt-b="How much you plan to move from pre-tax accounts (Traditional 401k/IRA) into a Roth IRA each year after you retire.<br><br><strong>The 5-year rule:</strong> each conversion can be withdrawn penalty-free 5 years after it is made. So conversions started at FIRE age begin helping in year 6 of retirement.<br><br>The Withdrawal Bridge Planner uses this to show how much of your pre-59½ gap the ladder covers. Conversions are taxed as income in the year you make them." data-tt-g="Roth Ladder">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothConversion" placeholder="0"></div>
+          </div>
           <div class="form-group">
             <div class="label-row"><label>Safe Withdrawal Rate (SWR)</label>
             <button class="ib" onclick="showTT(this)" data-tt-t="Safe Withdrawal Rate (SWR)" data-tt-b="The percentage of your portfolio you withdraw in year one of retirement, then adjust for inflation annually.<br><br><strong>The 4% Rule (Bengen, 1994):</strong> 4% survived every historical 30-year period including the Great Depression and 1970s stagflation.<br><br><strong>For early retirees (40–60 yr timelines):</strong> Consider 3–3.5%<br><strong>For traditional retirees (30 yrs):</strong> 4% is well-established<br><strong>Flexible spenders:</strong> 4.5–5% works if you can cut back in bad markets<br><br><strong>Formula:</strong> FIRE Number = expected retirement spending ÷ SWR, net of guaranteed income and bridge gaps." data-tt-g="Core Concept">i</button></div>
@@ -1546,33 +1562,46 @@ function presentValueOfIncome(income, years, rr) {
   return rr > 0 ? income * (1 - Math.pow(1 + rr, -years)) / rr : income * years;
 }
 
-function projectFireYear(totalInv, totalC, fireNum, rr) {
+const MEDICARE_AGE = 65;
+
+function projectFireYear(totalInv, totalC, fireNum, rr, contribGrowth = 0) {
   let portfolio = totalInv;
   for (let y = 0; y <= 60; y++) {
     if (portfolio >= fireNum) return y;
-    portfolio = portfolio * (1 + rr) + totalC;
+    portfolio = portfolio * (1 + rr) + totalC * Math.pow(1 + contribGrowth, y);
   }
   return null;
 }
 
-function computeFireMath({age, retireAge, expenses, socialSecurityIncome, pensionIncome, ssStartAge, swr, rr, totalInv, totalC, blendedTaxRate = 0}) {
+function computeFireMath({age, retireAge, expenses, socialSecurityIncome, pensionIncome, ssStartAge, swr, rr, totalInv, totalC, blendedTaxRate = 0, contribGrowth = 0, healthPre65 = 0}) {
   let assumedFireAge = retireAge;
   let fireYear = null;
   let spendingNeedAfterGuaranteedIncome = 0;
   let ssGapYears = 0;
   let ssGapSurcharge = 0;
+  let healthGapYears = 0;
+  let healthSurcharge = 0;
   let fireNum = 0;
 
-  for (let i = 0; i < 6; i++) {
+  const tried = new Set();
+  for (let i = 0; i < 8; i++) {
+    // An earlier assumed FIRE age raises the bridge costs, which can push the projected age later
+    // and loop back. On a repeat, settle on the earliest age tried (the larger, conservative number).
+    if (tried.has(assumedFireAge)) assumedFireAge = Math.min(...tried);
+    const settling = tried.has(assumedFireAge);
+    tried.add(assumedFireAge);
     spendingNeedAfterGuaranteedIncome = Math.max(0, expenses - pensionIncome - socialSecurityIncome);
     ssGapYears = Math.max(0, ssStartAge - assumedFireAge);
     ssGapSurcharge = presentValueOfIncome(socialSecurityIncome, ssGapYears, rr);
-    fireNum = swr > 0 && (spendingNeedAfterGuaranteedIncome > 0 || ssGapSurcharge > 0)
-      ? spendingNeedAfterGuaranteedIncome / swr + ssGapSurcharge
+    healthGapYears = Math.max(0, MEDICARE_AGE - assumedFireAge);
+    healthSurcharge = presentValueOfIncome(healthPre65, healthGapYears, rr);
+    const surcharges = ssGapSurcharge + healthSurcharge;
+    fireNum = swr > 0 && (spendingNeedAfterGuaranteedIncome > 0 || surcharges > 0)
+      ? spendingNeedAfterGuaranteedIncome / swr + surcharges
       : 0;
-    fireYear = projectFireYear(totalInv, totalC, fireNum, rr);
+    fireYear = projectFireYear(totalInv, totalC, fireNum, rr, contribGrowth);
     const nextFireAge = fireYear !== null ? age + fireYear : retireAge;
-    if (nextFireAge === assumedFireAge) break;
+    if (settling || nextFireAge === assumedFireAge) break;
     assumedFireAge = nextFireAge;
   }
 
@@ -1580,14 +1609,14 @@ function computeFireMath({age, retireAge, expenses, socialSecurityIncome, pensio
     ? spendingNeedAfterGuaranteedIncome / Math.max(0.01, 1 - blendedTaxRate)
     : 0;
   const taxDrag = Math.max(0, taxAdjustedWithdrawal - spendingNeedAfterGuaranteedIncome);
-  const taxAdjustedFireNum = swr > 0 && (taxAdjustedWithdrawal > 0 || ssGapSurcharge > 0)
-    ? taxAdjustedWithdrawal / swr + ssGapSurcharge
+  const taxAdjustedFireNum = swr > 0 && (taxAdjustedWithdrawal > 0 || ssGapSurcharge + healthSurcharge > 0)
+    ? taxAdjustedWithdrawal / swr + ssGapSurcharge + healthSurcharge
     : 0;
 
-  return {fireNum, fireYear, spendingNeedAfterGuaranteedIncome, ssGapYears, ssGapSurcharge, taxAdjustedWithdrawal, taxDrag, taxAdjustedFireNum};
+  return {fireNum, fireYear, bridgeStartAge: assumedFireAge, spendingNeedAfterGuaranteedIncome, ssGapYears, ssGapSurcharge, healthGapYears, healthSurcharge, taxAdjustedWithdrawal, taxDrag, taxAdjustedFireNum};
 }
 
-function buildProjection({age, totalInv, totalC, fireNum, fireYear, expenses, pensionIncome, socialSecurityIncome, ssStartAge, rr}) {
+function buildProjection({age, totalInv, totalC, fireNum, fireYear, expenses, pensionIncome, socialSecurityIncome, ssStartAge, rr, contribGrowth = 0, healthPre65 = 0}) {
   let portfolio = totalInv;
   const pd = [], pl = [];
   for (let y = 0; y <= 60; y++) {
@@ -1597,10 +1626,11 @@ function buildProjection({age, totalInv, totalC, fireNum, fireYear, expenses, pe
     if (retired) {
       const currentAge = age + y;
       const ssActive = currentAge >= ssStartAge;
-      const withdrawal = Math.max(0, expenses - pensionIncome - (ssActive ? socialSecurityIncome : 0));
+      const health = currentAge < MEDICARE_AGE ? healthPre65 : 0;
+      const withdrawal = Math.max(0, expenses + health - pensionIncome - (ssActive ? socialSecurityIncome : 0));
       portfolio = Math.max(0, portfolio * (1 + rr) - withdrawal);
     } else {
-      portfolio = portfolio * (1 + rr) + totalC;
+      portfolio = portfolio * (1 + rr) + totalC * Math.pow(1 + contribGrowth, y);
     }
   }
   return {pd, pl};
@@ -1642,6 +1672,11 @@ function calculate(options = {}) {
   const ccRateRaw = parseFloat(document.getElementById('ccRate')?.value);
   const mortgage=gv('mortgage'), stuLoans=gv('studentLoans'), carL=gv('carLoan'), ccD=gv('ccDebt'), ccRate=Number.isFinite(ccRateRaw) ? ccRateRaw : 24.99;
   const rr = gv('returnRate')/100;
+  const returnWarn = document.getElementById('returnWarn');
+  if (returnWarn) returnWarn.style.display = rr > 0.09 ? 'flex' : 'none';
+  const contribGrowth = Math.min(10, Math.max(0, gv('contribGrowth'))) / 100;
+  const healthPre65 = Math.max(0, gv('healthPre65'));
+  const rothConversion = Math.max(0, gv('rothConversion'));
   const em = gv('emergencyMonths'), efund = (currentExpenses/12)*em;
 
   // Home equity = market value − mortgage
@@ -1683,15 +1718,15 @@ function calculate(options = {}) {
     age, retireAge, expenses,
     socialSecurityIncome: totalSS,
     pensionIncome,
-    ssStartAge, swr, rr, totalInv, totalC, blendedTaxRate
+    ssStartAge, swr, rr, totalInv, totalC, blendedTaxRate, contribGrowth, healthPre65
   });
-  const {fireNum, fireYear, spendingNeedAfterGuaranteedIncome, ssGapYears, ssGapSurcharge, taxAdjustedWithdrawal, taxDrag, taxAdjustedFireNum} = fireMath;
+  const {fireNum, fireYear, bridgeStartAge, spendingNeedAfterGuaranteedIncome, ssGapYears, ssGapSurcharge, healthGapYears, healthSurcharge, taxAdjustedWithdrawal, taxDrag, taxAdjustedFireNum} = fireMath;
   const adjExp = spendingNeedAfterGuaranteedIncome;
   const grossWithdrawal = taxAdjustedWithdrawal;
   const progress = fireNum > 0 ? Math.min(1, totalInv / fireNum) : 0;
   const coastNum = fireNum > 0 ? fireNum / Math.pow(1+rr, ytf) : 0;
   const isCoast = coastNum > 0 && totalInv >= coastNum;
-  const {pd, pl} = buildProjection({age,totalInv,totalC,fireNum,fireYear,expenses,pensionIncome,socialSecurityIncome:totalSS,ssStartAge,rr});
+  const {pd, pl} = buildProjection({age,totalInv,totalC,fireNum,fireYear,expenses,pensionIncome,socialSecurityIncome:totalSS,ssStartAge,rr,contribGrowth,healthPre65});
 
   const activeFT = document.querySelector('.ft-btn.active');
   const fireType = activeFT ? activeFT.dataset.ft : 'regular';
@@ -1703,7 +1738,8 @@ function calculate(options = {}) {
     coastNum,isCoast,rr,ss,pSS,totalSS,totalGuaranteedIncome,k401c,k401Match,hsac,brokc,p401c,pMatch,rothIraContrib,
     mortgage,stuLoans,carL,ccD,ccRate,mortgageRate:gv('mortgageRate'),efund,
     totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate,taxAdjustedFireNum,
-    ssGapYears,ssGapSurcharge,ssStartAge,fireType };
+    ssGapYears,ssGapSurcharge,ssStartAge,fireType,
+    contribGrowth,healthPre65,healthGapYears,healthSurcharge,rothConversion,bridgeStartAge };
 
   calculated = true;
   saveInputs();
@@ -1778,6 +1814,7 @@ function renderDash(){
             </div>`;
           })()}
           ${s.ssGapYears > 0 ? `<div style="display:flex;align-items:center;gap:7px;margin-top:4px;padding:7px 11px;background:rgba(255,107,43,0.08);border:1px solid rgba(255,107,43,0.2);border-radius:8px;font-size:0.75rem;color:var(--fire-amber)">⏳ <strong>SS bridge:</strong> ${s.ssGapYears} yrs before Social Security starts (age ${s.ssStartAge}) — adds ${fmt(s.ssGapSurcharge)} to FIRE Number</div>` : ''}
+          ${s.healthSurcharge > 0 ? `<div style="display:flex;align-items:center;gap:7px;margin-top:4px;padding:7px 11px;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;font-size:0.75rem;color:var(--teal)">🩺 <strong>Pre-Medicare healthcare:</strong> ${fmt(s.healthPre65)}/yr for ages ${s.bridgeStartAge}–65 (${s.healthGapYears} yrs) — adds ${fmt(s.healthSurcharge)} to FIRE Number</div>` : ''}
           <div class="milestones">${ms.map(m=>`<div class="badge ${m.e?'earned':'locked'}">${m.e?'✓':'○'} ${m.l}</div>`).join('')}</div>
         </div>
         <div style="text-align:center;flex-shrink:0">
@@ -1985,21 +2022,37 @@ function renderBridgePlanner(s) {
   const projectedStartAge = s.fireYear !== null ? s.age + s.fireYear : s.retireAge;
   const bridgeEndAge = 60;
   const bridgeYears = Math.max(0, Math.ceil(59.5 - projectedStartAge));
-  const annualBridgeSpend = Math.max(0, s.expenses - s.pensionIncome);
+  const annualBridgeSpend = Math.max(0, s.expenses + s.healthPre65 - s.pensionIncome);
   const bridgeNeed = bridgeYears * annualBridgeSpend;
   const emergencyCash = s.efund || 0;
   const flexibleCash = Math.max(0, s.cash + (s.hasP ? s.pCash : 0) - emergencyCash);
   const taxableBridge = s.totalTaxable;
   const rothBridgeProxy = s.roth + s.roth401k + (s.hasP ? s.pRoth : 0);
   const hsaMedicalReserve = s.hsa + (s.hasP ? s.pHSA : 0);
-  const availableBridge = taxableBridge + flexibleCash + rothBridgeProxy + hsaMedicalReserve;
-  const bridgeCoverage = bridgeNeed > 0 ? Math.min(100, Math.round(availableBridge / bridgeNeed * 100)) : 100;
-  const bridgeGap = Math.max(0, bridgeNeed - availableBridge);
+  const otherBuckets = taxableBridge + flexibleCash + rothBridgeProxy + hsaMedicalReserve;
+
+  // Roth ladder: conversions start at FIRE age and each one unlocks 5 years later,
+  // so the first 5 bridge years must be funded by the other buckets.
+  const ladderWaitYears = Math.min(5, bridgeYears);
+  const ladderYears = Math.max(0, bridgeYears - 5);
+  const fireIdx = s.fireYear !== null ? s.fireYear : Math.max(0, s.retireAge - s.age);
+  const portfolioAtFire = s.pd[Math.min(fireIdx, s.pd.length - 1)] || s.totalInv;
+  const preTaxAtFire = s.totalInv > 0 ? portfolioAtFire * s.totalPreTax / s.totalInv : 0;
+  const ladderCover = Math.min(Math.min(s.rothConversion, annualBridgeSpend) * ladderYears, preTaxAtFire);
+  const earlyNeed = ladderWaitYears * annualBridgeSpend;
+  const laterNeed = bridgeNeed - earlyNeed;
+  const earlyCovered = Math.min(earlyNeed, otherBuckets);
+  const laterCovered = Math.min(laterNeed, ladderCover + Math.max(0, otherBuckets - earlyNeed));
+  const earlyShortfall = earlyNeed - earlyCovered;
+  const availableBridge = otherBuckets + ladderCover;
+  const bridgeCovered = earlyCovered + laterCovered;
+  const bridgeCoverage = bridgeNeed > 0 ? Math.min(100, Math.round(bridgeCovered / bridgeNeed * 100)) : 100;
+  const bridgeGap = Math.max(0, bridgeNeed - bridgeCovered);
   const monthlyGap = bridgeYears > 0 && bridgeGap > 0 ? Math.ceil(bridgeGap / bridgeYears / 12) : 0;
-  const statusColor = bridgeNeed === 0 || availableBridge >= bridgeNeed ? 'var(--green)' : availableBridge >= bridgeNeed * 0.7 ? 'var(--fire-amber)' : 'var(--ember)';
+  const statusColor = bridgeGap === 0 ? 'var(--green)' : bridgeCovered >= bridgeNeed * 0.7 ? 'var(--fire-amber)' : 'var(--ember)';
   const statusText = bridgeNeed === 0
     ? 'No early-access gap'
-    : availableBridge >= bridgeNeed
+    : bridgeGap === 0
       ? 'Bridge covered'
       : `${fmt(bridgeGap)} gap`;
   const sources = [
@@ -2007,6 +2060,7 @@ function renderBridgePlanner(s) {
     { name:'Flexible cash', note:'Cash above emergency fund', value:flexibleCash, color:'#818CF8' },
     { name:'Roth balance proxy', note:'Contribution basis may be accessible; earnings have rules', value:rothBridgeProxy, color:'#FFB347' },
     { name:'HSA medical reserve', note:'Useful for qualified medical expenses or saved receipts', value:hsaMedicalReserve, color:'#FFE066' },
+    ...(s.rothConversion > 0 && bridgeNeed > 0 ? [{ name:'Roth conversion ladder', note:`${fmt(s.rothConversion)}/yr converted, usable from age ${projectedStartAge + 5} (${ladderYears} yr${ladderYears === 1 ? '' : 's'} before 59½)`, value:ladderCover, color:'#F472B6' }] : []),
   ];
   const sourceRows = sources.map(src => {
     const width = bridgeNeed > 0 ? Math.min(100, src.value / bridgeNeed * 100) : 0;
@@ -2027,6 +2081,14 @@ function renderBridgePlanner(s) {
     : bridgeGap > 0
       ? `To close the estimated gap before age 59½, consider directing about ${fmt(monthlyGap)}/mo toward taxable brokerage or building more flexible cash, then revisit withdrawal sequencing with a CPA.`
       : `Your flexible buckets appear large enough to cover the estimated pre-59½ bridge. The next question is sequencing: taxable first, Roth basis carefully, HSA for medical costs, and pre-tax accounts through planned conversions.`;
+  const ladderTip = bridgeNeed === 0 ? ''
+    : s.rothConversion > 0
+      ? (earlyShortfall > 0
+          ? `🪜 Ladder timing: conversions can't be spent for 5 years, so the first ${ladderWaitYears} years (${fmt(earlyNeed)}) must come from brokerage, cash, Roth contributions or HSA. Those buckets fall ${fmt(earlyShortfall)} short.`
+          : `🪜 Ladder timing: your other buckets cover the first ${ladderWaitYears} years (${fmt(earlyNeed)}) while conversions season. The ladder covers ${fmt(ladderCover)} after that. Conversions are taxed as income in the year you make them.`)
+      : (bridgeGap > 0 && s.totalPreTax > 0
+          ? `🪜 You have ${fmt(s.totalPreTax)} in pre-tax accounts. Enter a planned yearly Roth conversion in Return &amp; Tax Assumptions to see how much of this gap a conversion ladder could cover.`
+          : '');
 
   return `<div class="card" id="bridgePlanner" style="margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
@@ -2055,6 +2117,7 @@ function renderBridgePlanner(s) {
       </div>
     </div>
     <div class="itip" style="margin-top:10px"><span class="e">💡</span>${gapTip}</div>
+    ${ladderTip ? `<div class="itip" style="margin-top:8px">${ladderTip}</div>` : ''}
     <div class="itip" style="margin-top:8px"><span class="e">⚠️</span>This is a planning estimate, not tax advice. Roth contribution access, HSA reimbursements, and conversion ladders all have rules and documentation requirements.</div>
   </div>`;
 }
@@ -2082,7 +2145,7 @@ function renderMilestoneTimeline(s) {
 }
 
 function sensitivityAge(inv, sav, fn, rr, age) {
-  const y = calcFY(inv, sav, fn, rr);
+  const y = calcFY(inv, sav, fn, rr, state.contribGrowth);
   return y === null ? 'Beyond 60' : `Age ${age + y}`;
 }
 
@@ -2275,10 +2338,8 @@ function renderWhatIf(){
   updateWI();
 }
 
-function calcFY(inv,sav,fn,rr){
-  let p=inv;
-  for(let y=0;y<=60;y++){ if(p>=fn) return y; p=p*(1+rr)+sav; }
-  return null;
+function calcFY(inv,sav,fn,rr,g=0){
+  return projectFireYear(inv, sav, fn, rr, g);
 }
 
 function whatIfFireMath({expenses, totalC, totalInv, rr, swr, pensionIncome, totalSS, ssStartAge, age, retireAge, blendedTaxRate}) {
@@ -2286,7 +2347,8 @@ function whatIfFireMath({expenses, totalC, totalInv, rr, swr, pensionIncome, tot
     age, retireAge, expenses,
     socialSecurityIncome: totalSS,
     pensionIncome,
-    ssStartAge, swr, rr, totalInv, totalC, blendedTaxRate
+    ssStartAge, swr, rr, totalInv, totalC, blendedTaxRate,
+    contribGrowth: state.contribGrowth, healthPre65: state.healthPre65
   });
 }
 
@@ -2311,7 +2373,7 @@ function updateWI(){
     pensionIncome:s.pensionIncome, totalSS:s.totalSS, ssStartAge:s.ssStartAge, age:s.age, retireAge:s.retireAge, blendedTaxRate:s.blendedTaxRate
   });
   document.getElementById('wfResult').innerHTML=wiR(base,wfMath.fireYear,s.age,fmt(wf)+' lump sum');
-  const omyY=calcFY(s.totalInv+s.totalC+s.totalInv*s.rr,s.totalC,s.fireNum,s.rr);
+  const omyY=calcFY(s.totalInv+s.totalC+s.totalInv*s.rr,s.totalC*(1+s.contribGrowth),s.fireNum,s.rr,s.contribGrowth);
   const omyDiff=base!==null&&omyY!==null?base-omyY-1:null;
   document.getElementById('omyResult').innerHTML=`
     <div class="grid-3" style="gap:10px;margin-bottom:10px">
@@ -2612,7 +2674,7 @@ const INPUT_IDS = [
   'salary','bonus','rsus','sideIncome',
   'partnerAge','partnerRetireAge','partnerSalary','partnerBonus','partnerRSUs','partnerSideIncome',
   'partner401k','partner401kContrib','partner401kMatch','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
-  'expenses','retireExpenses','emergencyMonths',
+  'expenses','retireExpenses','healthPre65','emergencyMonths','contribGrowth','rothConversion',
   'k401','roth401k','k401Contrib','k401Match','rothIra','rothIraContrib','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
   'homeEquity','cash','college','pension',
   'mortgage','mortgageRate','studentLoans','studentLoanRate','carLoan','carLoanRate','ccDebt','ccRate','monthlyDebtPayments',
@@ -2654,6 +2716,11 @@ function applyInputData(data) {
     const ccRateEl = document.getElementById('ccRate');
     if (ccRateEl) ccRateEl.value = '24.99';
   }
+  // Profiles saved before these fields existed must not inherit the previous profile's values.
+  ['k401Match','partner401kMatch','healthPre65','contribGrowth','rothConversion'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id] === undefined) el.value = id === 'contribGrowth' ? '0' : '';
+  });
   // Restore partner toggle
   partnerOn = !!data._partnerOpen;
   document.getElementById('partnerToggle').classList.toggle('on', partnerOn);
@@ -3161,7 +3228,12 @@ function mulberry32(seed) {
 }
 function runMonteCarlo(s, vol, runs = 1000, endAge = 95) {
   if (!(s.fireNum > 0) || !(s.age > 0) || s.age >= endAge) return null;
-  const rand = mulberry32(20240601);
+  // Seed from the plan's key numbers: stable while values are unchanged, distinct across plans.
+  const seedKey = [s.age, s.totalInv, s.totalC, s.fireNum, s.rr, vol, s.contribGrowth, s.healthPre65]
+    .map(v => Math.round((v || 0) * 1000)).join('|');
+  let seed = 2166136261;
+  for (let i = 0; i < seedKey.length; i++) seed = Math.imul(seed ^ seedKey.charCodeAt(i), 16777619);
+  const rand = mulberry32(seed);
   const gauss = () => {
     let u = 0; while (u === 0) u = rand();
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand());
@@ -3182,11 +3254,12 @@ function runMonteCarlo(s, vol, runs = 1000, endAge = 95) {
       const growth = Math.exp(mu + sigma * gauss());
       if (y >= retireYear) {
         const age = s.age + y;
-        const need = Math.max(0, s.expenses - s.pensionIncome - (age >= s.ssStartAge ? s.totalSS : 0));
+        const health = age < MEDICARE_AGE ? s.healthPre65 : 0;
+        const need = Math.max(0, s.expenses + health - s.pensionIncome - (age >= s.ssStartAge ? s.totalSS : 0));
         p = p * growth - need;
         if (p <= 0) { p = 0; alive = false; }
       } else {
-        p = p * growth + s.totalC;
+        p = p * growth + s.totalC * Math.pow(1 + s.contribGrowth, y);
       }
     }
     if (alive) survived++;
