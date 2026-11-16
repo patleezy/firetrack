@@ -957,8 +957,13 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner 401(k) Annual Contribution</label>
-                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution" data-tt-b="How much your partner contributes annually including employer match. The 2025 employee limit is $23,500 ($31,000 if 50+, $34,750 if 60-63). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution (Employee)" data-tt-b="Your partner's own employee contribution per year, <em>not including</em> employer match. 2025 employee limit: $23,500 ($31,000 if 50+, $34,750 if 60–63). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401kContrib" placeholder="0"></div>
+              </div>
+              <div class="form-group">
+                <div class="label-row"><label>Partner Employer Match</label>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Employer 401(k) Match" data-tt-b="The annual dollar amount your partner's employer contributes to their 401(k). Enter 0 if unknown or not applicable. Included in household savings rate and portfolio growth." data-tt-g="Partner Assets">i</button></div>
+                <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401kMatch" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Roth IRA</label>
@@ -1029,9 +1034,14 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="roth401k" placeholder="0"></div>
           </div>
           <div class="form-group">
-            <div class="label-row"><label>Annual 401(k) Contribution</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Annual 401(k) Contribution" data-tt-b="How much you contribute per year including employer match (Roth + Traditional combined). Maxing this out is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged." data-tt-g="Tax-Advantaged">i</button></div>
+            <div class="label-row"><label>Annual 401(k) Contribution (Employee)</label>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual 401(k) Contribution (You)" data-tt-b="Your own employee contribution per year (Roth + Traditional combined), <em>not including</em> your employer match. 2025 employee limit: $23,500 ($31,000 if 50+, $34,750 if 60–63). Maxing this is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged." data-tt-g="Tax-Advantaged">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401Contrib" value="23000"></div>
+          </div>
+          <div class="form-group">
+            <div class="label-row"><label>Employer 401(k) Match</label>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Employer 401(k) Match" data-tt-b="The annual dollar amount your employer contributes to your 401(k). Common matches: 50% or 100% of your contribution up to 3–6% of salary.<br><br><strong>Example:</strong> $95K salary × 4% = $3,800 employer match.<br><br>Always contribute at least enough to capture the full match — it's an immediate 50–100% return on that money. Included in your household savings rate and portfolio growth." data-tt-g="Tax-Advantaged">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401Match" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Roth IRA Balance</label>
@@ -1055,8 +1065,8 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual HSA Contribution</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Annual HSA Contribution" data-tt-b="How much you add to your HSA yearly. Maxing this out ($4,150 individual / $8,300 family) is strongly recommended — it's the most tax-efficient account available to most Americans." data-tt-g="Tax-Advantaged">i</button></div>
-            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsaContrib" value="4150"></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual HSA Contribution" data-tt-b="How much you add to your HSA yearly. Maxing this out ($4,300 individual / $8,550 family in 2025) is strongly recommended — it's the most tax-efficient account available to most Americans." data-tt-g="Tax-Advantaged">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsaContrib" value="4300"></div>
           </div>
         </div>
 
@@ -1622,10 +1632,10 @@ function calculate(options = {}) {
   const homeVal=gv('homeEquity');
   const pensionIncome=gv('pension');   // Now annual income, not lump sum
   const col=gv('college');
-  const k401c=gv('k401Contrib'), hsac=gv('hsaContrib'), brokc=gv('brokerageContrib');
+  const k401c=gv('k401Contrib'), k401Match=gv('k401Match'), hsac=gv('hsaContrib'), brokc=gv('brokerageContrib');
   const rothIraContrib=gv('rothIraContrib');
 
-  const p401=hasP?gv('partner401k'):0, p401c=hasP?gv('partner401kContrib'):0;
+  const p401=hasP?gv('partner401k'):0, p401c=hasP?gv('partner401kContrib'):0, pMatch=hasP?gv('partner401kMatch'):0;
   const pRoth=hasP?gv('partnerRothIra'):0, pHSA=hasP?gv('partnerHSA'):0, pBrok=hasP?gv('partnerBrokerage'):0;
   const pCash=hasP?gv('partnerCash'):0;
 
@@ -1660,8 +1670,8 @@ function calculate(options = {}) {
   const partInv = p401+pRoth+pHSA+pBrok;
   const totalInv = youInv + partInv;
 
-  // Savings rate now includes Roth IRA contributions
-  const youC = k401c + hsac + brokc + rothIraContrib, partC = p401c, totalC = youC + partC;
+  // Savings rate includes employee contributions, employer match, HSA, brokerage, and Roth IRA
+  const youC = k401c + k401Match + hsac + brokc + rothIraContrib, partC = p401c + pMatch, totalC = youC + partC;
   const savRate = totalInc>0 ? totalC/totalInc : 0;
 
   // Tax-adjusted gross withdrawal
@@ -1690,7 +1700,7 @@ function calculate(options = {}) {
     k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pensionIncome,col,p401,pRoth,pHSA,pBrok,pCash,
     totalAssets,totalDebts,netWorth,totalInv,youInv,partInv,youAssets,partAssets,
     fireNum,adjExp,savRate,totalC,youC,partC,progress,pd,pl,fireYear,
-    coastNum,isCoast,rr,ss,pSS,totalSS,totalGuaranteedIncome,k401c,hsac,brokc,p401c,rothIraContrib,
+    coastNum,isCoast,rr,ss,pSS,totalSS,totalGuaranteedIncome,k401c,k401Match,hsac,brokc,p401c,pMatch,rothIraContrib,
     mortgage,stuLoans,carL,ccD,ccRate,mortgageRate:gv('mortgageRate'),efund,
     totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate,taxAdjustedFireNum,
     ssGapYears,ssGapSurcharge,ssStartAge,fireType };
@@ -1890,7 +1900,7 @@ function renderDash(){
               '⚠️ High — lenders may flag this')
           : ''}
         ${hc('401(k) Maxed?',fmt(s.k401c),s.k401c>=23500,s.k401c>=23500?'Maxed ✓':'2025 limit: $23,500')}
-        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=4150,s.hsac>=4300?'Maxed ✓':'2025 limit: $4,300')}
+        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=4300,s.hsac>=4300?'Maxed ✓':'2025 limit: $4,300')}
         ${s.ccD>0?hc('Credit Card Debt',fmt(s.ccD),false,`⚠️ ${s.ccRate.toFixed(1)}% APR — pay first`):''}
         ${s.hasP?hc('Partner 401k Maxed?',fmt(s.p401c),s.p401c>=23500,s.p401c>=23500?'Maxed ✓':'2025 limit: $23,500'):''}
       </div>
@@ -2601,9 +2611,9 @@ const INPUT_IDS = [
   'age','retireAge','dependents','filingStatus',
   'salary','bonus','rsus','sideIncome',
   'partnerAge','partnerRetireAge','partnerSalary','partnerBonus','partnerRSUs','partnerSideIncome',
-  'partner401k','partner401kContrib','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
+  'partner401k','partner401kContrib','partner401kMatch','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
   'expenses','retireExpenses','emergencyMonths',
-  'k401','roth401k','k401Contrib','rothIra','rothIraContrib','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
+  'k401','roth401k','k401Contrib','k401Match','rothIra','rothIraContrib','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
   'homeEquity','cash','college','pension',
   'mortgage','mortgageRate','studentLoans','studentLoanRate','carLoan','carLoanRate','ccDebt','ccRate','monthlyDebtPayments',
   'returnRate','swr','socialSecurity','ssStartAge','retireTaxRate'
