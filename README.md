@@ -51,7 +51,7 @@ Recent formula updates make the surrounding assumptions more explicit:
 
 ## Deployment
 
-Static files only — deploy anywhere. When `vendor/` files or icons change, bump `CACHE` in `sw.js` so installed apps pick them up.
+Static files only — deploy anywhere. When `calc.js`, `vendor/` files or icons change, bump `CACHE` in `sw.js` so installed apps pick them up.
 
 ### Vercel (recommended)
 ```bash
@@ -67,13 +67,23 @@ Just open `index.html` in any browser.
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Main app |
+| `index.html` | Main app (UI and rendering) |
+| `calc.js` | Calculation core: pure FIRE math, projections, Monte Carlo, and backup sanitizing (no DOM access) |
+| `tests/` | Unit tests for `calc.js` (not deployed) |
 | `vendor/` | Self-hosted Chart.js 4.4.0, hammer.js 2.0.8, chartjs-plugin-zoom 2.0.1, and DM Sans / DM Serif Display fonts (SIL OFL, licenses in `vendor/fonts/`). No third-party CDN requests. |
 | `manifest.webmanifest` | PWA manifest (install to home screen) |
 | `sw.js` | Service worker that caches the app's own files for offline use; never touches financial data |
 | `icons/` | App icons for home screen / install |
 | `og-image.png` | Social sharing preview image |
 | `vercel.json` | Vercel deployment config + security headers, including a Content Security Policy that blocks all outbound network requests (`connect-src 'none'`) |
+
+## Tests
+
+No dependencies needed; uses Node's built-in test runner (Node 18+):
+
+```bash
+node --test tests/*.test.js
+```
 
 ## Disclaimer
 

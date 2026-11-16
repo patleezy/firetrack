@@ -1,10 +1,11 @@
 // FIREtrack service worker: caches the app's own files so it works offline.
 // It never stores or sends any financial data; that stays in localStorage.
-// Bump CACHE whenever vendor files or icons change.
-const CACHE = 'firetrack-v2';
+// Bump CACHE whenever calc.js, vendor files or icons change.
+const CACHE = 'firetrack-v3';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
+  '/calc.js',
   '/vendor/chart.umd.min.js',
   '/vendor/hammer.min.js',
   '/vendor/chartjs-plugin-zoom.min.js',
