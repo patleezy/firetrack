@@ -2195,18 +2195,39 @@ function sensitivityAge(inv, sav, fn, rr, age) {
   return y === null ? 'Beyond 60' : `Age ${age + y}`;
 }
 
+const SENS_RETURN_OPTS = [1, 2, 3];
+const SENS_SPEND_OPTS = [5, 10, 20];
+
+function setSensitivity(kind, value) {
+  const v = Number(value);
+  if (kind === 'ret' && SENS_RETURN_OPTS.includes(v)) prefs.sensRet = v;
+  if (kind === 'spend' && SENS_SPEND_OPTS.includes(v)) prefs.sensSpend = v;
+  savePrefs();
+  const panel = document.getElementById('sensitivityPanel');
+  if (panel && calculated) panel.innerHTML = renderSensitivity(state);
+}
+
 function renderSensitivity(s) {
-  const conservativeRR = Math.max(0.01, s.rr - 0.02);
-  const aggressiveRR = s.rr + 0.02;
-  const conservativeFN = s.fireNum * 1.12;
-  const aggressiveFN = s.fireNum * 0.9;
+  const ret = prefs.sensRet / 100, spend = prefs.sensSpend / 100;
+  const pctLabel = r => `${+(r * 100).toFixed(1)}%`;
+  const conservativeRR = Math.max(0.01, s.rr - ret);
+  const aggressiveRR = s.rr + ret;
+  const conservativeFN = s.fireNum * (1 + spend);
+  const aggressiveFN = s.fireNum * (1 - spend);
   const scenarios = [
-    { cls:'', name:'Conservative', age:sensitivityAge(s.totalInv, s.totalC, conservativeFN, conservativeRR, s.age), note:`${Math.round(conservativeRR*100)}% return · 12% higher need` },
-    { cls:'base', name:'Base Case', age:sensitivityAge(s.totalInv, s.totalC, s.fireNum, s.rr, s.age), note:`${Math.round(s.rr*100)}% return · current spending` },
-    { cls:'', name:'Optimistic', age:sensitivityAge(s.totalInv, s.totalC, aggressiveFN, aggressiveRR, s.age), note:`${Math.round(aggressiveRR*100)}% return · 10% lower need` },
+    { cls:'', name:'Conservative', age:sensitivityAge(s.totalInv, s.totalC, conservativeFN, conservativeRR, s.age), note:`${pctLabel(conservativeRR)} return · ${prefs.sensSpend}% higher need` },
+    { cls:'base', name:'Base Case', age:sensitivityAge(s.totalInv, s.totalC, s.fireNum, s.rr, s.age), note:`${pctLabel(s.rr)} return · current spending` },
+    { cls:'', name:'Optimistic', age:sensitivityAge(s.totalInv, s.totalC, aggressiveFN, aggressiveRR, s.age), note:`${pctLabel(aggressiveRR)} return · ${prefs.sensSpend}% lower need` },
   ];
+  const opts = (list, cur) => list.map(v => `<option value="${v}" ${v === cur ? 'selected' : ''}>±${v}%</option>`).join('');
   return `<div class="card" style="margin-bottom:14px">
-    <div class="card-title"><span class="dot"></span> Assumption Sensitivity</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:13px">
+      <div class="card-title" style="margin-bottom:0"><span class="dot"></span> Assumption Sensitivity</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <label class="infl-input">Return <select onchange="setSensitivity('ret',this.value)" aria-label="Return swing">${opts(SENS_RETURN_OPTS, prefs.sensRet)}</select></label>
+        <label class="infl-input">Spending <select onchange="setSensitivity('spend',this.value)" aria-label="Spending swing">${opts(SENS_SPEND_OPTS, prefs.sensSpend)}</select></label>
+      </div>
+    </div>
     <div class="sensitivity-grid">
       ${scenarios.map(x => `<div class="sensitivity-card ${x.cls}">
         <div class="sensitivity-name">${x.name}</div>
@@ -3267,6 +3288,8 @@ try { Object.assign(prefs, JSON.parse(localStorage.getItem(LS_PREFS)) || {}); } 
 if (!['today','future'].includes(prefs.dollars)) prefs.dollars = 'today';
 prefs.inflation = Math.min(15, Math.max(0, Number(prefs.inflation) || 0));
 if (![10,15,18].includes(prefs.vol)) prefs.vol = 15;
+if (![1,2,3].includes(prefs.sensRet)) prefs.sensRet = 2;
+if (![5,10,20].includes(prefs.sensSpend)) prefs.sensSpend = 10;
 if (!prefs.snooze || typeof prefs.snooze !== 'object') prefs.snooze = {};
 function savePrefs() { try { localStorage.setItem(LS_PREFS, JSON.stringify(prefs)); } catch(e) {} }
 
@@ -3553,6 +3576,7 @@ window.exportBackup = exportBackup;
 window.importBackup = importBackup;
 window.runCheckIn = runCheckIn;
 window.closeCheckIn = closeCheckIn;
+window.setSensitivity = setSensitivity;
 window.saveCheckIn = saveCheckIn;
 window.switchTab = switchTab;
 window.showView = showView;
