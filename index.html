@@ -971,7 +971,7 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner 401(k) Annual Contribution</label>
-                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution (Employee)" data-tt-b="Your partner's own employee contribution per year, <em>not including</em> employer match. 2025 employee limit: $23,500 ($31,000 if 50+, $34,750 if 60–63). Each spouse maxing their 401(k) = $46,000/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner 401(k) Contribution (Employee)" data-tt-b="Your partner's own employee contribution per year, <em>not including</em> employer match. {{year}} employee limit: {{k401}} ({{k401_50}} if 50+, {{k401_6063}} if 60–63). Each spouse maxing their 401(k) = {{k401_couple}}/yr in tax-advantaged investing." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partner401kContrib" placeholder="0"></div>
               </div>
               <div class="form-group">
@@ -981,12 +981,12 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner Roth IRA</label>
-                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Roth IRA" data-tt-b="Each spouse can have their own Roth IRA — growing tax-free with tax-free withdrawals in retirement. Both can contribute $7,000/yr ($8,000 if 50+) subject to joint income limits. Roth contributions can be withdrawn penalty-free at any age — a critical FIRE tool." data-tt-g="Partner Assets">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner Roth IRA" data-tt-b="Each spouse can have their own Roth IRA — growing tax-free with tax-free withdrawals in retirement. Both can contribute {{ira}}/yr ({{ira_50}} if 50+) subject to joint income limits ({{rothJoint}} phase-out in {{year}}). Roth contributions can be withdrawn penalty-free at any age — a critical FIRE tool." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerRothIra" placeholder="0"></div>
               </div>
               <div class="form-group">
                 <div class="label-row"><label>Partner HSA</label>
-                <button class="ib" onclick="showTT(this)" data-tt-t="Partner HSA" data-tt-b="If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The family contribution limit is $8,550 in 2025 — invest it in index funds for the ultimate triple-tax-advantaged account." data-tt-g="Partner Assets">i</button></div>
+                <button class="ib" onclick="showTT(this)" data-tt-t="Partner HSA" data-tt-b="If your partner is also on an HSA-eligible High-Deductible Health Plan (HDHP), they may have their own HSA. The {{year}} family contribution limit is {{hsaFamily}} — invest it in index funds for the ultimate triple-tax-advantaged account." data-tt-g="Partner Assets">i</button></div>
                 <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="partnerHSA" placeholder="0"></div>
               </div>
               <div class="form-group">
@@ -1044,17 +1044,17 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
         <div class="two-col">
           <div class="form-group">
             <div class="label-row"><label>Traditional 401(k) / 403(b)</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Traditional 401(k) / 403(b)" data-tt-b="Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>2025 limits:</strong> $23,500 employee / $70,000 total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free." data-tt-g="Tax-Deferred">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Traditional 401(k) / 403(b)" data-tt-b="Pre-tax contributions; money grows tax-deferred. <strong>Withdrawals are taxed as ordinary income</strong> — plan for this in retirement.<br><br><strong>{{year}} limits:</strong> {{k401}} employee / {{total415c}} total with employer match<br><strong>Early access:</strong> 10% penalty + taxes before 59½, BUT early retirees use Rule 72(t) SEPP payments or Roth conversion ladders to access funds penalty-free." data-tt-g="Tax-Deferred">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401" value="87000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Roth 401(k) Balance</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Roth 401(k)" data-tt-b="After-tax contributions; <strong>withdrawals in retirement are completely tax-free</strong>, including growth. Shares the same $23,000 contribution limit with Traditional 401k — you split contributions between them however you like.<br><br>Best for: those who expect to be in a higher tax bracket in retirement, or want tax diversification. Many FIRE practitioners prefer Roth accounts to minimize taxes during a potentially long, low-income retirement." data-tt-g="Tax-Free">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Roth 401(k)" data-tt-b="After-tax contributions; <strong>withdrawals in retirement are completely tax-free</strong>, including growth. Shares the same {{k401}} employee contribution limit with Traditional 401k — you split contributions between them however you like.<br><br>Best for: those who expect to be in a higher tax bracket in retirement, or want tax diversification. Many FIRE practitioners prefer Roth accounts to minimize taxes during a potentially long, low-income retirement." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="roth401k" placeholder="0"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual 401(k) Contribution (Employee)</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Annual 401(k) Contribution (You)" data-tt-b="Your own employee contribution per year (Roth + Traditional combined), <em>not including</em> your employer match. 2025 employee limit: $23,500 ($31,000 if 50+, $34,750 if 60–63). Maxing this is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged." data-tt-g="Tax-Advantaged">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual 401(k) Contribution (You)" data-tt-b="Your own employee contribution per year (Roth + Traditional combined), <em>not including</em> your employer match. {{year}} employee limit: {{k401}} ({{k401_50}} if 50+, {{k401_6063}} if 60–63). Maxing this is one of the highest-leverage FIRE moves — you reduce current taxes AND grow wealth tax-advantaged." data-tt-g="Tax-Advantaged">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="k401Contrib" value="23000"></div>
           </div>
           <div class="form-group">
@@ -1064,12 +1064,12 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>Roth IRA Balance</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Roth IRA" data-tt-b="Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>2025 limits:</strong> $7,000/yr ($8,000 if 50+)<br><strong>Income limits:</strong> $150K–$165K single / $236K–$246K married (phase-out)<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½." data-tt-g="Tax-Free">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Roth IRA" data-tt-b="Funded with after-tax dollars. Growth is <strong>tax-free</strong>. Qualified withdrawals are <strong>completely tax-free</strong>.<br><br><strong>{{year}} limits:</strong> {{ira}}/yr ({{ira_50}} if 50+)<br><strong>Income limits:</strong> {{rothSingle}} single / {{rothJoint}} married (phase-out)<br><strong>Backdoor Roth:</strong> High earners use the Backdoor Roth IRA strategy<br><br><strong>FIRE superpower:</strong> Your contributions (not earnings) can be withdrawn penalty-free at ANY age — a crucial bridge to age 59½." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIra" value="22000"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual Roth IRA Contribution</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Roth IRA Contribution" data-tt-b="How much you contribute to your Roth IRA each year. 2025 limit: $7,000/yr ($8,000 if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever." data-tt-g="Tax-Free">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual Roth IRA Contribution" data-tt-b="How much you contribute to your Roth IRA each year. {{year}} limit: {{ira}}/yr ({{ira_50}} if 50+). Counted in your savings rate — this is after-tax money going to work tax-free forever." data-tt-g="Tax-Free">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="rothIraContrib" placeholder="0"></div>
           </div>
           <div class="form-group">
@@ -1079,13 +1079,13 @@ input[type=range]::-moz-range-thumb { width:20px; height:20px; border-radius:50%
           </div>
           <div class="form-group">
             <div class="label-row"><label>HSA Balance</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="HSA — Health Savings Account" data-tt-b="The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>2025 limits:</strong> $4,300 individual / $8,550 family<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>." data-tt-g="Tax-Free ⭐">i</button></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="HSA — Health Savings Account" data-tt-b="The ultimate <strong>triple-tax-advantaged</strong> account:<br>• Contributions go in pre-tax<br>• Growth is tax-free<br>• Withdrawals for medical expenses are tax-free (and after 65, for anything)<br><br><strong>{{year}} limits:</strong> {{hsaSelf}} individual / {{hsaFamily}} family (+{{hsaCatchUp55}} if 55+)<br><strong>FIRE Hack:</strong> Invest your HSA in index funds, pay medical bills out-of-pocket, save all receipts — reimburse yourself years later with <em>no time limit</em>." data-tt-g="Tax-Free ⭐">i</button></div>
             <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsa" value="9500"></div>
           </div>
           <div class="form-group">
             <div class="label-row"><label>Annual HSA Contribution</label>
-            <button class="ib" onclick="showTT(this)" data-tt-t="Annual HSA Contribution" data-tt-b="How much you add to your HSA yearly. Maxing this out ($4,300 individual / $8,550 family in 2025) is strongly recommended — it's the most tax-efficient account available to most Americans." data-tt-g="Tax-Advantaged">i</button></div>
-            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsaContrib" value="4300"></div>
+            <button class="ib" onclick="showTT(this)" data-tt-t="Annual HSA Contribution" data-tt-b="How much you add to your HSA yearly. Maxing this out ({{hsaSelf}} individual / {{hsaFamily}} family in {{year}}) is strongly recommended — it's the most tax-efficient account available to most Americans." data-tt-g="Tax-Advantaged">i</button></div>
+            <div class="input-wrap has-prefix"><span class="input-prefix">$</span><input type="number" id="hsaContrib" value="4400"></div>
           </div>
         </div>
 
@@ -1396,7 +1396,8 @@ let profilesStore = null;
 // ── TOOLTIP ──
 function tt(title, body, tag) {
   document.getElementById('ttTitle').textContent = title;
-  document.getElementById('ttBody').innerHTML = body; // body is always hardcoded static HTML, never user input
+  // body is always hardcoded static HTML, never user input; tokens are filled with numbers only
+  document.getElementById('ttBody').innerHTML = fillLimitTokens(body, limitsFor(new Date().getFullYear()));
   const tagWrap = document.getElementById('ttTagWrap');
   if (tag) {
     const span = document.createElement('span');
@@ -1625,6 +1626,7 @@ function calculate(options = {}) {
 
 // ── DASHBOARD ──
 function renderDash(){
+  const L=limitsFor(new Date().getFullYear());
   const s=state, pp=Math.round(s.progress*100), srP=Math.round(s.savRate*100);
   const fyd = s.fireYear!==null ? `Age ${s.age+s.fireYear}${s.fireYear===0?' 🎉':` (~${s.fireYear} yrs)`}` : 'Beyond 60yr range';
   const efM = s.currentExpenses>0 ? (s.cash/(s.currentExpenses/12)).toFixed(1) : '—';
@@ -1800,10 +1802,10 @@ function renderDash(){
               dti < 0.43 ? 'Acceptable — watch it' :
               '⚠️ High — lenders may flag this')
           : ''}
-        ${hc('401(k) Maxed?',fmt(s.k401c),s.k401c>=23500,s.k401c>=23500?'Maxed ✓':'2025 limit: $23,500')}
-        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=4300,s.hsac>=4300?'Maxed ✓':'2025 limit: $4,300')}
+        ${hc('401(k) Maxed?',fmt(s.k401c),s.k401c>=L.k401,s.k401c>=L.k401?'Maxed ✓':`${L.year} limit: ${fmt(L.k401)}`)}
+        ${hc('HSA Maxed?',fmt(s.hsac),s.hsac>=L.hsaSelf,s.hsac>=L.hsaSelf?'Maxed ✓ (self-only)':`${L.year} limit: ${fmt(L.hsaSelf)} self-only / ${fmt(L.hsaFamily)} family`)}
         ${s.ccD>0?hc('Credit Card Debt',fmt(s.ccD),false,`⚠️ ${s.ccRate.toFixed(1)}% APR — pay first`):''}
-        ${s.hasP?hc('Partner 401k Maxed?',fmt(s.p401c),s.p401c>=23500,s.p401c>=23500?'Maxed ✓':'2025 limit: $23,500'):''}
+        ${s.hasP?hc('Partner 401k Maxed?',fmt(s.p401c),s.p401c>=L.k401,s.p401c>=L.k401?'Maxed ✓':`${L.year} limit: ${fmt(L.k401)}`):''}
       </div>
     </div>
 
