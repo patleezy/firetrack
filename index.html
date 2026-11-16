@@ -1651,10 +1651,39 @@ function buildProjection({age, totalInv, totalC, fireNum, fireYear, expenses, pe
 }
 
 // ── CALCULATE ──
-function calculate(options = {}) {
-  const recordSnapshot = options.recordSnapshot === true;
+// Reads plan inputs from the live form.
+function domInputSource() {
+  const activeFT = document.querySelector('.ft-btn.active');
+  return {
+    gv,
+    raw: id => document.getElementById(id)?.value ?? '',
+    hasP: pOn(),
+    fireType: activeFT ? activeFT.dataset.ft : 'regular',
+  };
+}
+
+// Reads plan inputs from a saved profile, falling back to the form's built-in defaults
+// for fields the profile predates (never the currently loaded profile's values).
+function dataInputSource(data) {
+  const raw = id => {
+    if (data && data[id] !== undefined) return String(data[id]);
+    const el = document.getElementById(id);
+    if (!el) return '';
+    if (el.tagName === 'SELECT') return ([...el.options].find(o => o.defaultSelected) || el.options[0])?.value ?? '';
+    return el.defaultValue;
+  };
+  return {
+    gv: id => parseFloat(raw(id)) || 0,
+    raw,
+    hasP: !!data?._partnerOpen,
+    fireType: data?._fireType || 'regular',
+  };
+}
+
+function computeState(src) {
+  const gv = src.gv;
   const age = gv('age'), retireAge = gv('retireAge'), ytf = Math.max(retireAge-age,1);
-  const hasP = pOn();
+  const hasP = src.hasP;
 
   const salary=gv('salary'),bonus=gv('bonus'),rsus=gv('rsus'),side=gv('sideIncome');
   const pSalary=hasP?gv('partnerSalary'):0, pBonus=hasP?gv('partnerBonus'):0, pRSUs=hasP?gv('partnerRSUs'):0, pSide=hasP?gv('partnerSideIncome'):0;
@@ -1683,11 +1712,9 @@ function calculate(options = {}) {
   const pRoth=hasP?gv('partnerRothIra'):0, pHSA=hasP?gv('partnerHSA'):0, pBrok=hasP?gv('partnerBrokerage'):0;
   const pCash=hasP?gv('partnerCash'):0;
 
-  const ccRateRaw = parseFloat(document.getElementById('ccRate')?.value);
+  const ccRateRaw = parseFloat(src.raw('ccRate'));
   const mortgage=gv('mortgage'), stuLoans=gv('studentLoans'), carL=gv('carLoan'), ccD=gv('ccDebt'), ccRate=Number.isFinite(ccRateRaw) ? ccRateRaw : 24.99;
   const rr = gv('returnRate')/100;
-  const returnWarn = document.getElementById('returnWarn');
-  if (returnWarn) returnWarn.style.display = rr > 0.09 ? 'flex' : 'none';
   const contribGrowth = Math.min(10, Math.max(0, gv('contribGrowth'))) / 100;
   const healthPre65 = Math.max(0, gv('healthPre65'));
   const rothConversion = Math.max(0, gv('rothConversion'));
@@ -1742,10 +1769,9 @@ function calculate(options = {}) {
   const isCoast = coastNum > 0 && totalInv >= coastNum;
   const {pd, pl} = buildProjection({age,totalInv,totalC,fireNum,fireYear,expenses,pensionIncome,socialSecurityIncome:totalSS,ssStartAge,rr,contribGrowth,healthPre65});
 
-  const activeFT = document.querySelector('.ft-btn.active');
-  const fireType = activeFT ? activeFT.dataset.ft : 'regular';
+  const fireType = src.fireType;
 
-  state = { age,retireAge,ytf,hasP,youInc,partInc,totalInc,currentExpenses,retireExpenses,expenses,swr,
+  return { age,retireAge,ytf,hasP,youInc,partInc,totalInc,currentExpenses,retireExpenses,expenses,swr,
     k401,roth401k,roth,tIra,hsa,brok,cash,homeVal,homeEq,pensionIncome,col,p401,pRoth,pHSA,pBrok,pCash,
     totalAssets,totalDebts,netWorth,totalInv,youInv,partInv,youAssets,partAssets,
     fireNum,adjExp,savRate,totalC,youC,partC,progress,pd,pl,fireYear,
@@ -1754,7 +1780,13 @@ function calculate(options = {}) {
     totalPreTax,totalTaxFree,totalTaxable,retireTaxRate,grossWithdrawal,taxDrag,blendedTaxRate,taxAdjustedFireNum,
     ssGapYears,ssGapSurcharge,ssStartAge,fireType,
     contribGrowth,healthPre65,healthGapYears,healthSurcharge,rothConversion,bridgeStartAge };
+}
 
+function calculate(options = {}) {
+  const recordSnapshot = options.recordSnapshot === true;
+  state = computeState(domInputSource());
+  const returnWarn = document.getElementById('returnWarn');
+  if (returnWarn) returnWarn.style.display = state.rr > 0.09 ? 'flex' : 'none';
   calculated = true;
   saveInputs();
   const profile = activeProfile();
@@ -2423,7 +2455,14 @@ function renderCompare() {
   }
 
   const active = activeProfile();
-  const base = active?.summary || profileSummaryFromState(state);
+  const base = profileSummaryFromState(state);
+  // Recompute every profile from its saved inputs so cards never show stale numbers.
+  const liveSummary = profile => {
+    if (profile.id === profilesStore.activeId) return base;
+    if (!profile.data) return null;
+    try { return profileSummaryFromState(computeState(dataInputSource(profile.data))); }
+    catch (e) { return null; }
+  };
   const delta = (value, baseValue, lowerIsBetter = false, suffix = '') => {
     if (value === null || value === undefined || baseValue === null || baseValue === undefined || value === baseValue) return '';
     const diff = value - baseValue;
@@ -2437,7 +2476,7 @@ function renderCompare() {
     <div class="section-sub">Use local profiles as scenarios. Duplicate a profile, change the assumptions, and compare FIRE outcomes without retyping your base info.</div>
     <div class="compare-grid">
       ${profiles.map(profile => {
-        const summary = profile.summary;
+        const summary = liveSummary(profile);
         const isActive = profile.id === profilesStore.activeId;
         if (!summary) {
           return `<div class="compare-card ${isActive ? 'active' : ''}">
@@ -2687,7 +2726,7 @@ const INPUT_IDS = [
   'age','retireAge','dependents','filingStatus',
   'salary','bonus','rsus','sideIncome',
   'partnerAge','partnerRetireAge','partnerSalary','partnerBonus','partnerRSUs','partnerSideIncome',
-  'partner401k','partner401kContrib','partner401kMatch','partnerRothIra','partnerHSA','partnerBrokerage','partnerSS',
+  'partner401k','partner401kContrib','partner401kMatch','partnerRothIra','partnerHSA','partnerBrokerage','partnerCash','partnerSS',
   'expenses','retireExpenses','healthPre65','emergencyMonths','contribGrowth','rothConversion',
   'k401','roth401k','k401Contrib','k401Match','rothIra','rothIraContrib','tradIra','hsa','hsaContrib','brokerage','brokerageContrib',
   'homeEquity','cash','college','pension',
